@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Appointments — MediFlow Admin</title>
+  <link rel="stylesheet" href="../css/style.css">
+  <link rel="stylesheet" href="../css/admin.css">
+</head>
+<body>
+<nav class="admin-topnav">
+  <a href="../index.html" class="admin-topnav-logo"><div class="admin-topnav-logo-icon">🏥</div>Medi<span>Flow</span></a>
+  <span class="admin-topnav-badge">🛡️ Admin Portal</span>
+  <div class="admin-topnav-spacer"></div>
+  <div class="admin-topnav-user">
+    <div class="admin-topnav-avatar">A</div>
+    <span id="adminName">Admin</span>
+    <a href="#" class="admin-topnav-logout" onclick="adminLogout()">Logout</a>
+  </div>
+</nav>
+<aside class="admin-sidebar">
+  <div class="admin-sidebar-label">Overview</div>
+  <a href="dashboard.html"><span class="admin-sidebar-icon">📊</span> Dashboard</a>
+  <div class="admin-sidebar-label">Management</div>
+  <a href="doctors.html"><span class="admin-sidebar-icon">🩺</span> Doctors</a>
+  <a href="patients.html"><span class="admin-sidebar-icon">🧑‍⚕️</span> Patients</a>
+  <a href="appointments.html" class="active"><span class="admin-sidebar-icon">📅</span> Appointments</a>
+  <div class="admin-sidebar-label">Reports</div>
+  <a href="reports.html"><span class="admin-sidebar-icon">📋</span> Weekly Reports</a>
+  <div class="admin-sidebar-label">Settings</div>
+  <a href="settings.html"><span class="admin-sidebar-icon">⚙️</span> Settings</a>
+  <a href="../index.html"><span class="admin-sidebar-icon">🌐</span> View Site</a>
+</aside>
+<main class="admin-main">
+  <div class="admin-page-header">
+    <div class="admin-page-eyebrow">Management</div>
+    <h1 class="admin-page-title">All Appointments</h1>
+    <p class="admin-page-sub">View, schedule, reassign and manage all appointments across departments.</p>
+  </div>
+  <div class="admin-alert" id="alertBox"></div>
+
+  <!-- Add Appointment -->
+  <div class="admin-card" style="margin-bottom:24px;">
+    <div class="admin-card-header">
+      <span class="admin-card-title">➕ Schedule New Appointment</span>
+      <button class="admin-btn admin-btn-outline admin-btn-sm" onclick="toggleForm()">Toggle Form</button>
+    </div>
+    <div id="addForm" style="display:none;">
+      <div class="admin-form-grid">
+        <div class="admin-form-group"><label>Patient Name *</label><input type="text" id="aPatient" placeholder="Patient name"></div>
+        <div class="admin-form-group"><label>Assign Doctor *</label>
+          <select id="aDoctor"><option value="">Select doctor</option></select></div>
+        <div class="admin-form-group"><label>Date *</label><input type="date" id="aDate"></div>
+        <div class="admin-form-group"><label>Time Slot *</label>
+          <select id="aTime"><option value="">Select time</option>
+            <option>09:00 AM</option><option>09:30 AM</option><option>10:00 AM</option>
+            <option>10:30 AM</option><option>11:00 AM</option><option>11:30 AM</option>
+            <option>12:00 PM</option><option>02:00 PM</option><option>02:30 PM</option>
+            <option>03:00 PM</option><option>03:30 PM</option><option>04:00 PM</option>
+            <option>04:30 PM</option><option>05:00 PM</option>
+          </select></div>
+        <div class="admin-form-group"><label>Status</label>
+          <select id="aStatus"><option>Confirmed</option><option>Pending</option></select></div>
+        <div class="admin-form-group"><label>Reason</label><input type="text" id="aReason" placeholder="Reason for visit"></div>
+      </div>
+      <div class="admin-form-actions">
+        <button class="admin-btn admin-btn-primary" onclick="addAppointment()">Schedule</button>
+        <button class="admin-btn admin-btn-outline" onclick="clearForm()">Clear</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Stats row -->
+  <div class="admin-stats" style="grid-template-columns:repeat(4,1fr);margin-bottom:20px;">
+    <div class="admin-stat-card navy"><div class="admin-stat-label">Total</div><div class="admin-stat-value" id="cTotal">0</div></div>
+    <div class="admin-stat-card green"><div class="admin-stat-label">Confirmed</div><div class="admin-stat-value" id="cConfirmed">0</div></div>
+    <div class="admin-stat-card amber"><div class="admin-stat-label">Pending</div><div class="admin-stat-value" id="cPending">0</div></div>
+    <div class="admin-stat-card teal"><div class="admin-stat-label">Completed</div><div class="admin-stat-value" id="cCompleted">0</div></div>
+  </div>
+
+  <!-- Table -->
+  <div class="admin-card">
+    <div class="admin-card-header">
+      <span class="admin-card-title">Appointment Records</span>
+      <div style="display:flex;gap:10px;align-items:center;">
+        <select id="filterStatus" onchange="renderTable()" style="padding:7px 12px;border:1.5px solid var(--border);border-radius:8px;font-size:13px;background:var(--bg);outline:none;">
+          <option value="">All Status</option><option>Confirmed</option><option>Pending</option><option>Completed</option><option>Cancelled</option>
+        </select>
+        <div class="admin-search"><span>🔍</span><input type="text" id="searchInput" placeholder="Search..." oninput="renderTable()"></div>
+      </div>
+    </div>
+    <div id="apptTable"></div>
+  </div>
+</main>
+<script src="../js/auth.js"></script>
+<script src="../js/admin.js"></script>
+<script>
+  requireAdmin();
+  const s=getSession(); if(s) document.getElementById('adminName').textContent=s.name||'Admin';
+
+  function populateDoctors(){
+    const sel=document.getElementById('aDoctor');
+    getDoctors().forEach(d=>{const o=document.createElement('option');o.value=d.id;o.textContent=`${d.name} — ${d.dept}`;sel.appendChild(o);});
+  }
+  populateDoctors();
+  function toggleForm(){const f=document.getElementById('addForm');f.style.display=f.style.display==='none'?'block':'none';}
+
+  function addAppointment(){
+    const patient=document.getElementById('aPatient').value.trim();
+    const docId=document.getElementById('aDoctor').value;
+    const date=document.getElementById('aDate').value;
+    const time=document.getElementById('aTime').value;
+    const status=document.getElementById('aStatus').value;
+    const reason=document.getElementById('aReason').value.trim();
+    if(!patient||!docId||!date||!time){showAlert('alertBox','Fill all required fields.','error');return;}
+    const doctors=getDoctors();
+    const doc=doctors.find(d=>d.id===docId);
+    const apts=getAppointments();
+    const id=nextId('APT',apts);
+    saveAppointment({id,patientName:patient,patientId:'',doctorId:docId,doctorName:doc?.name||'',dept:doc?.dept||'',date,time,status,reason,notes:''});
+    showAlert('alertBox',`Appointment ${id} scheduled.`);
+    clearForm(); renderTable();
+  }
+  function clearForm(){['aPatient','aDate','aReason'].forEach(i=>document.getElementById(i).value='');document.getElementById('aDoctor').value='';document.getElementById('aTime').value='';}
+
+  function updateStatus(id,status){
+    const apts=getAppointments();
+    const a=apts.find(x=>x.id===id);
+    if(a){a.status=status;DB.set('mf_appointments',apts);}
+    renderTable();
+  }
+  function deleteAppt(id){
+    if(!confirm('Delete this appointment?'))return;
+    deleteById('mf_appointments',id);
+    showAlert('alertBox','Appointment deleted.');
+    renderTable();
+  }
+
+  function renderTable(){
+    const q=document.getElementById('searchInput').value.toLowerCase();
+    const st=document.getElementById('filterStatus').value;
+    let apts=getAppointments().filter(a=>{
+      const mq=!q||a.patientName.toLowerCase().includes(q)||(a.doctorName||'').toLowerCase().includes(q);
+      const ms=!st||a.status===st;
+      return mq&&ms;
+    });
+    document.getElementById('cTotal').textContent=getAppointments().length;
+    document.getElementById('cConfirmed').textContent=getAppointments().filter(a=>a.status==='Confirmed').length;
+    document.getElementById('cPending').textContent=getAppointments().filter(a=>a.status==='Pending').length;
+    document.getElementById('cCompleted').textContent=getAppointments().filter(a=>a.status==='Completed').length;
+    if(!apts.length){document.getElementById('apptTable').innerHTML='<div class="admin-empty"><div class="admin-empty-icon">📅</div><div class="admin-empty-text">No appointments found.</div></div>';return;}
+    document.getElementById('apptTable').innerHTML=`
+      <table class="admin-table">
+        <thead><tr><th>ID</th><th>Patient</th><th>Doctor</th><th>Dept</th><th>Date</th><th>Time</th><th>Status</th><th>Actions</th></tr></thead>
+        <tbody>${apts.map(a=>`<tr>
+          <td class="td-muted">${a.id}</td>
+          <td><strong>${a.patientName}</strong></td>
+          <td class="td-muted">${a.doctorName}</td>
+          <td class="td-muted">${a.dept}</td>
+          <td class="td-muted">${a.date}</td>
+          <td class="td-muted">${a.time}</td>
+          <td>${statusBadge(a.status)}</td>
+          <td style="display:flex;gap:5px;flex-wrap:wrap;">
+            <button class="admin-btn admin-btn-outline admin-btn-sm" onclick="updateStatus('${a.id}','Completed')">✓ Done</button>
+            <button class="admin-btn admin-btn-danger admin-btn-sm" onclick="deleteAppt('${a.id}')">Delete</button>
+          </td>
+        </tr>`).join('')}</tbody>
+      </table>`;
+  }
+  renderTable();
+</script>
+</body>
+</html>
