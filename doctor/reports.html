@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>My Reports — MediFlow Doctor</title>
+  <link rel="stylesheet" href="../css/style.css">
+  <link rel="stylesheet" href="../css/doctor.css">
+</head>
+<body>
+<nav class="doctor-topnav">
+  <a href="../index.html" class="doctor-topnav-logo"><div class="doctor-topnav-logo-icon">🏥</div>Medi<span>Flow</span></a>
+  <span class="doctor-topnav-badge">🩺 Doctor Portal</span>
+  <div class="doctor-topnav-spacer"></div>
+  <div class="doctor-topnav-user">
+    <div class="doctor-topnav-avatar" id="doctorInitial">D</div>
+    <span id="doctorName">Doctor</span>
+    <a href="#" class="doctor-topnav-logout" onclick="doctorLogout()">Logout</a>
+  </div>
+</nav>
+<aside class="doctor-sidebar">
+  <div class="doctor-sidebar-label">Overview</div>
+  <a href="dashboard.html"><span class="doctor-sidebar-icon">📊</span> Dashboard</a>
+  <div class="doctor-sidebar-label">My Work</div>
+  <a href="schedule.html"><span class="doctor-sidebar-icon">📅</span> My Schedule</a>
+  <a href="appointments.html"><span class="doctor-sidebar-icon">🗓️</span> Appointments</a>
+  <a href="patients.html"><span class="doctor-sidebar-icon">🧑‍⚕️</span> My Patients</a>
+  <div class="doctor-sidebar-label">Reports</div>
+  <a href="reports.html" class="active"><span class="doctor-sidebar-icon">📋</span> My Reports</a>
+  <div class="doctor-sidebar-label">Account</div>
+  <a href="profile.html"><span class="doctor-sidebar-icon">👤</span> My Profile</a>
+  <a href="../index.html"><span class="doctor-sidebar-icon">🌐</span> View Site</a>
+</aside>
+<main class="doctor-main">
+  <div class="doctor-page-header">
+    <div class="doctor-page-eyebrow">Reports</div>
+    <h1 class="doctor-page-title">My Weekly Report</h1>
+    <p class="doctor-page-sub">Your personal performance summary. Download as PDF anytime.</p>
+  </div>
+  <div style="display:flex;gap:12px;margin-bottom:24px;">
+    <button class="doctor-btn doctor-btn-primary" onclick="downloadPDF()">📥 Download PDF</button>
+    <button class="doctor-btn doctor-btn-outline" onclick="loadReport()">🔄 Refresh</button>
+  </div>
+  <div id="reportView"></div>
+</main>
+<div id="printArea" style="display:none;font-family:Georgia,serif;padding:40px;max-width:800px;"></div>
+<script src="../js/auth.js"></script>
+<script src="../js/doctor.js"></script>
+<script>
+  requireDoctor();
+  buildDocNav();
+  const s = getSession();
+
+  function getWeekRange() {
+    const now=new Date(), day=now.getDay();
+    const mon=new Date(now); mon.setDate(now.getDate()-(day===0?6:day-1));
+    const sun=new Date(mon); sun.setDate(mon.getDate()+6);
+    return{start:mon.toISOString().slice(0,10),end:sun.toISOString().slice(0,10),label:`${mon.toDateString()} – ${sun.toDateString()}`};
+  }
+
+  function loadReport() {
+    const week = getWeekRange();
+    const allApts = getMyAppointments(s.doctorId);
+    const weekApts = allApts.filter(a=>a.date>=week.start&&a.date<=week.end);
+    const pats = getMyPatients(s.doctorId);
+
+    document.getElementById('reportView').innerHTML=`
+      <div class="doctor-card" style="margin-bottom:20px;">
+        <div class="doctor-card-header">
+          <span class="doctor-card-title">📋 Report for ${s.name} · ${week.label}</span>
+          <span style="font-size:12px;color:var(--muted);">Generated: ${new Date().toLocaleString()}</span>
+        </div>
+        <div style="padding:24px;">
+          <div class="doctor-stats" style="margin-bottom:0;">
+            <div class="doctor-stat-card teal"><div class="doctor-stat-label">This Week</div><div class="doctor-stat-value">${weekApts.length}</div><div class="doctor-stat-sub">Appointments</div></div>
+            <div class="doctor-stat-card green"><div class="doctor-stat-label">Completed</div><div class="doctor-stat-value">${weekApts.filter(a=>a.status==='Completed').length}</div></div>
+            <div class="doctor-stat-card navy"><div class="doctor-stat-label">Total (All Time)</div><div class="doctor-stat-value">${allApts.length}</div></div>
+            <div class="doctor-stat-card amber"><div class="doctor-stat-label">My Patients</div><div class="doctor-stat-value">${pats.length}</div></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="doctor-grid-2">
+        <div class="doctor-card">
+          <div class="doctor-card-header"><span class="doctor-card-title">All-Time Summary</span></div>
+          <div style="padding:20px 24px;display:flex;flex-direction:column;gap:12px;">
+            ${[['Total Appointments',allApts.length],['Completed',allApts.filter(a=>a.status==='Completed').length],['Cancelled',allApts.filter(a=>a.status==='Cancelled').length],['Completion Rate',allApts.length?Math.round(allApts.filter(a=>a.status==='Completed').length/allApts.length*100)+'%':'0%'],['Total Patients',pats.length],['Department',s.dept]].map(([l,v])=>`
+            <div style="display:flex;justify-content:space-between;border-bottom:1px solid var(--border);padding-bottom:10px;font-size:13.5px;">
+              <span style="color:var(--muted);">${l}</span><strong style="color:var(--navy);">${v}</strong>
+            </div>`).join('')}
+          </div>
+        </div>
+        <div class="doctor-card">
+          <div class="doctor-card-header"><span class="doctor-card-title">This Week's Appointments</span></div>
+          ${weekApts.length?`<table class="doctor-table">
+            <thead><tr><th>Date</th><th>Patient</th><th>Status</th></tr></thead>
+            <tbody>${weekApts.map(a=>`<tr>
+              <td>${a.date}</td><td>${a.patientName}</td>
+              <td><span class="badge badge-${a.status.toLowerCase()}">${a.status}</span></td>
+            </tr>`).join('')}</tbody></table>` : '<div class="doctor-empty"><div>No appointments this week.</div></div>'}
+        </div>
+      </div>`;
+  }
+
+  function downloadPDF() {
+    const week=getWeekRange();
+    const allApts=getMyAppointments(s.doctorId);
+    const weekApts=allApts.filter(a=>a.date>=week.start&&a.date<=week.end);
+    const pats=getMyPatients(s.doctorId);
+    document.getElementById('printArea').style.display='block';
+    document.getElementById('printArea').innerHTML=`
+      <div style="border-bottom:3px solid #0E7C7B;padding-bottom:20px;margin-bottom:24px;">
+        <h1 style="font-size:24px;color:#1B3A6B;">MediFlow HMS — Doctor Report</h1>
+        <h2 style="font-size:16px;color:#5C6A8A;font-weight:400;">${s.name} · ${s.dept} Department</h2>
+        <p style="color:#5C6A8A;">Period: ${week.label} · Generated: ${new Date().toLocaleString()}</p>
+      </div>
+      <table style="width:100%;border-collapse:collapse;margin-bottom:24px;">
+        ${[['Total Appointments',allApts.length],['This Week',weekApts.length],['Completed',allApts.filter(a=>a.status==='Completed').length],['Completion Rate',allApts.length?Math.round(allApts.filter(a=>a.status==='Completed').length/allApts.length*100)+'%':'0%'],['My Patients',pats.length]].map(([l,v],i)=>`
+        <tr style="background:${i%2?'#F7F9FC':'white'};"><td style="padding:9px 10px;border:1px solid #DDE3F0;">${l}</td><td style="text-align:center;padding:9px 10px;border:1px solid #DDE3F0;font-weight:700;color:#1B3A6B;">${v}</td></tr>`).join('')}
+      </table>
+      ${weekApts.length?`<h3 style="color:#1B3A6B;margin-bottom:12px;">This Week's Appointments</h3>
+      <table style="width:100%;border-collapse:collapse;">
+        <tr style="background:#E6F5F5;"><th style="text-align:left;padding:9px;border:1px solid #DDE3F0;">Date</th><th style="padding:9px;border:1px solid #DDE3F0;">Time</th><th style="padding:9px;border:1px solid #DDE3F0;">Patient</th><th style="padding:9px;border:1px solid #DDE3F0;">Status</th></tr>
+        ${weekApts.map((a,i)=>`<tr style="background:${i%2?'#F7F9FC':'white'};"><td style="padding:9px;border:1px solid #DDE3F0;">${a.date}</td><td style="padding:9px;border:1px solid #DDE3F0;">${a.time}</td><td style="padding:9px;border:1px solid #DDE3F0;">${a.patientName}</td><td style="padding:9px;border:1px solid #DDE3F0;">${a.status}</td></tr>`).join('')}
+      </table>`:''}
+      <p style="text-align:center;color:#5C6A8A;font-size:12px;margin-top:24px;border-top:1px solid #DDE3F0;padding-top:16px;">MediFlow HMS · Confidential · ${new Date().toLocaleDateString()}</p>`;
+    window.print();
+    setTimeout(()=>{document.getElementById('printArea').style.display='none';},1000);
+  }
+  loadReport();
+</script>
+<style>@media print{.doctor-topnav,.doctor-sidebar,.doctor-main{display:none!important;}#printArea{display:block!important;}}</style>
+</body>
+</html>
