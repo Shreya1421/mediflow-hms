@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin Dashboard — MediFlow</title>
+  <link rel="stylesheet" href="../css/style.css">
+  <link rel="stylesheet" href="../css/admin.css">
+</head>
+<body>
+
+<!-- Top Nav -->
+<nav class="admin-topnav">
+  <a href="../index.html" class="admin-topnav-logo">
+    <div class="admin-topnav-logo-icon">🏥</div>
+    Medi<span>Flow</span>
+  </a>
+  <span class="admin-topnav-badge">🛡️ Admin Portal</span>
+  <div class="admin-topnav-spacer"></div>
+  <div class="admin-topnav-user">
+    <div class="admin-topnav-avatar" id="avatarInitial">A</div>
+    <span id="adminName">Admin</span>
+    <a href="#" class="admin-topnav-logout" onclick="adminLogout()">Logout</a>
+  </div>
+</nav>
+
+<!-- Sidebar -->
+<aside class="admin-sidebar">
+  <div class="admin-sidebar-label">Overview</div>
+  <a href="dashboard.html" class="active"><span class="admin-sidebar-icon">📊</span> Dashboard</a>
+  <div class="admin-sidebar-label">Management</div>
+  <a href="doctors.html"><span class="admin-sidebar-icon">🩺</span> Doctors</a>
+  <a href="patients.html"><span class="admin-sidebar-icon">🧑‍⚕️</span> Patients</a>
+  <a href="appointments.html"><span class="admin-sidebar-icon">📅</span> Appointments</a>
+  <div class="admin-sidebar-label">Reports</div>
+  <a href="reports.html"><span class="admin-sidebar-icon">📋</span> Weekly Reports</a>
+  <div class="admin-sidebar-label">Settings</div>
+  <a href="settings.html"><span class="admin-sidebar-icon">⚙️</span> Settings</a>
+  <a href="../index.html"><span class="admin-sidebar-icon">🌐</span> View Site</a>
+</aside>
+
+<!-- Main -->
+<main class="admin-main">
+  <div class="admin-page-header">
+    <div class="admin-page-eyebrow">Overview</div>
+    <h1 class="admin-page-title">Admin Dashboard</h1>
+    <p class="admin-page-sub">Live hospital statistics and operational overview.</p>
+  </div>
+
+  <!-- Stats -->
+  <div class="admin-stats">
+    <div class="admin-stat-card navy">
+      <div class="admin-stat-label">Total Patients</div>
+      <div class="admin-stat-value" id="statPatients">0</div>
+      <div class="admin-stat-sub" id="subPatients">Registered</div>
+    </div>
+    <div class="admin-stat-card teal">
+      <div class="admin-stat-label">Total Doctors</div>
+      <div class="admin-stat-value" id="statDoctors">0</div>
+      <div class="admin-stat-sub" id="subDoctors">Active</div>
+    </div>
+    <div class="admin-stat-card green">
+      <div class="admin-stat-label">Appointments</div>
+      <div class="admin-stat-value" id="statApts">0</div>
+      <div class="admin-stat-sub" id="subApts">Total</div>
+    </div>
+    <div class="admin-stat-card amber">
+      <div class="admin-stat-label">Today's Appointments</div>
+      <div class="admin-stat-value" id="statToday">0</div>
+      <div class="admin-stat-sub">Scheduled today</div>
+    </div>
+  </div>
+
+  <div class="admin-grid-2">
+    <!-- Recent Appointments -->
+    <div class="admin-card" style="grid-column: 1 / -1;">
+      <div class="admin-card-header">
+        <span class="admin-card-title">Recent Appointments</span>
+        <a href="appointments.html" class="admin-btn admin-btn-outline admin-btn-sm">View All →</a>
+      </div>
+      <div class="admin-card-body">
+        <div id="recentAppts">
+          <div class="admin-empty"><div class="admin-empty-icon">📅</div><div class="admin-empty-text">No appointments yet.</div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="admin-grid-2">
+    <!-- Recent Patients -->
+    <div class="admin-card">
+      <div class="admin-card-header">
+        <span class="admin-card-title">Recent Patients</span>
+        <a href="patients.html" class="admin-btn admin-btn-outline admin-btn-sm">View All →</a>
+      </div>
+      <div class="admin-card-body">
+        <div id="recentPatients">
+          <div class="admin-empty"><div class="admin-empty-icon">🧑‍⚕️</div><div class="admin-empty-text">No patients yet.</div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Department breakdown -->
+    <div class="admin-card">
+      <div class="admin-card-header">
+        <span class="admin-card-title">Patients by Department</span>
+      </div>
+      <div class="dept-list" id="deptList">
+        <div class="admin-empty"><div class="admin-empty-text">No data yet.</div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Doctors overview -->
+  <div class="admin-card">
+    <div class="admin-card-header">
+      <span class="admin-card-title">Doctors Overview</span>
+      <a href="doctors.html" class="admin-btn admin-btn-primary admin-btn-sm">+ Add Doctor</a>
+    </div>
+    <div class="admin-card-body">
+      <div id="doctorOverview">
+        <div class="admin-empty"><div class="admin-empty-icon">🩺</div><div class="admin-empty-text">No doctors yet.</div></div>
+      </div>
+    </div>
+  </div>
+
+</main>
+
+<script src="../js/auth.js"></script>
+<script src="../js/admin.js"></script>
+<script>
+  requireAdmin();
+
+  // Set admin name
+  const s = getSession();
+  if (s) { document.getElementById('adminName').textContent = s.name || 'Admin'; }
+
+  function loadDashboard() {
+    const patients = getPatients();
+    const doctors  = getDoctors();
+    const apts     = getAppointments();
+    const today    = new Date().toISOString().slice(0,10);
+
+    document.getElementById('statPatients').textContent = patients.length;
+    document.getElementById('statDoctors').textContent  = doctors.length;
+    document.getElementById('statApts').textContent     = apts.length;
+    document.getElementById('statToday').textContent    = apts.filter(a => a.date === today).length;
+
+    // Recent appointments
+    if (apts.length > 0) {
+      const recent = [...apts].reverse().slice(0, 6);
+      document.getElementById('recentAppts').innerHTML = `
+        <table class="admin-table">
+          <thead><tr><th>ID</th><th>Patient</th><th>Doctor</th><th>Dept</th><th>Date</th><th>Time</th><th>Status</th></tr></thead>
+          <tbody>${recent.map(a => `<tr>
+            <td class="td-muted">${a.id}</td>
+            <td><strong>${a.patientName}</strong></td>
+            <td class="td-muted">${a.doctorName}</td>
+            <td class="td-muted">${a.dept}</td>
+            <td class="td-muted">${a.date}</td>
+            <td class="td-muted">${a.time}</td>
+            <td>${statusBadge(a.status)}</td>
+          </tr>`).join('')}</tbody>
+        </table>`;
+    }
+
+    // Recent patients
+    if (patients.length > 0) {
+      const recent = [...patients].reverse().slice(0, 5);
+      document.getElementById('recentPatients').innerHTML = `
+        <table class="admin-table">
+          <thead><tr><th>Name</th><th>Age</th><th>Blood</th><th>Dept</th><th>Doctor</th></tr></thead>
+          <tbody>${recent.map(p => {
+            const doc = doctors.find(d => d.id === p.doctor);
+            return `<tr>
+              <td><strong>${p.name}</strong></td>
+              <td class="td-muted">${p.age || '—'}</td>
+              <td><span class="badge badge-navy">${p.blood || '—'}</span></td>
+              <td class="td-muted">${p.dept || '—'}</td>
+              <td class="td-muted">${doc ? doc.name : '—'}</td>
+            </tr>`;
+          }).join('')}</tbody>
+        </table>`;
+    }
+
+    // Dept breakdown
+    const depts = {};
+    patients.forEach(p => { if (p.dept) depts[p.dept] = (depts[p.dept]||0)+1; });
+    const max = Math.max(...Object.values(depts), 1);
+    if (Object.keys(depts).length > 0) {
+      document.getElementById('deptList').innerHTML = Object.entries(depts)
+        .sort((a,b)=>b[1]-a[1])
+        .map(([d,c]) => `
+          <div class="dept-row">
+            <span class="dept-name">${d}</span>
+            <div class="dept-bar-track"><div class="dept-bar-fill" style="width:${Math.round(c/max*100)}%"></div></div>
+            <span class="dept-count">${c}</span>
+          </div>`).join('');
+    }
+
+    // Doctors overview
+    if (doctors.length > 0) {
+      document.getElementById('doctorOverview').innerHTML = `
+        <table class="admin-table">
+          <thead><tr><th>ID</th><th>Name</th><th>Department</th><th>Phone</th><th>Patients</th><th>Actions</th></tr></thead>
+          <tbody>${doctors.map(d => {
+            const pts = patients.filter(p => p.doctor === d.id).length;
+            return `<tr>
+              <td class="td-muted">${d.id}</td>
+              <td><strong>${d.name}</strong></td>
+              <td><span class="badge badge-teal">${d.dept}</span></td>
+              <td class="td-muted">${d.phone}</td>
+              <td class="td-muted">${pts} patients</td>
+              <td><a href="doctor-detail.html?id=${d.id}" class="admin-btn admin-btn-outline admin-btn-sm">View →</a></td>
+            </tr>`;
+          }).join('')}</tbody>
+        </table>`;
+    }
+  }
+
+  loadDashboard();
+</script>
+</body>
+</html>
