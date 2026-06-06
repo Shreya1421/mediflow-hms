@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Appointments – MediFlow</title>
+  <link rel="stylesheet" href="../css/style.css">
+</head>
+<body>
+
+  <nav class="navbar">
+    <a href="../index.html" class="nav-logo">
+      <div class="nav-logo-icon">🏥</div>
+      MediFlow
+    </a>
+    <div class="nav-spacer"></div>
+    <span class="nav-badge">Admin Portal</span>
+  </nav>
+
+  <div class="page-wrapper">
+    <aside class="sidebar">
+      <div class="sidebar-label">Modules</div>
+      <a href="dashboard.html"><span class="sidebar-icon">📊</span> Dashboard</a>
+      <a href="patients.html"><span class="sidebar-icon">🧑‍⚕️</span> Patients</a>
+      <a href="appointments.html" class="active"><span class="sidebar-icon">📅</span> Appointments</a>
+      <div class="sidebar-label">General</div>
+      <a href="../index.html"><span class="sidebar-icon">🏠</span> Home</a>
+    </aside>
+
+    <main class="main-content">
+      <div class="page-header">
+        <div class="page-eyebrow">Module</div>
+        <h1 class="page-title">Appointments</h1>
+        <p class="page-subtitle">Schedule and manage patient appointments with doctors.</p>
+      </div>
+
+      <div class="alert alert-success" id="apptSuccess">✓ Appointment scheduled successfully!</div>
+
+      <div class="form-card">
+        <div class="form-section-title">Appointment Details</div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Patient Name *</label>
+            <input type="text" id="aPatient" placeholder="e.g. Priya Sharma">
+          </div>
+          <div class="form-group">
+            <label>Doctor *</label>
+            <select id="aDoctor">
+              <option value="">Select doctor</option>
+              <option>Dr. Rajesh Kumar — General</option>
+              <option>Dr. Anjali Singh — Cardiology</option>
+              <option>Dr. Mohan Das — Neurology</option>
+              <option>Dr. Neha Verma — Gynaecology</option>
+              <option>Dr. Arun Tiwari — Orthopaedics</option>
+              <option>Dr. Priti Shah — Paediatrics</option>
+              <option>Dr. Vikram Rao — Dermatology</option>
+              <option>Dr. Suresh Nair — ENT</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Date *</label>
+            <input type="date" id="aDate">
+          </div>
+          <div class="form-group">
+            <label>Time Slot *</label>
+            <select id="aTime">
+              <option value="">Select time</option>
+              <option>09:00 AM</option><option>09:30 AM</option>
+              <option>10:00 AM</option><option>10:30 AM</option>
+              <option>11:00 AM</option><option>11:30 AM</option>
+              <option>12:00 PM</option><option>02:00 PM</option>
+              <option>02:30 PM</option><option>03:00 PM</option>
+              <option>03:30 PM</option><option>04:00 PM</option>
+              <option>04:30 PM</option><option>05:00 PM</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Status</label>
+            <select id="aStatus">
+              <option>Confirmed</option>
+              <option>Pending</option>
+              <option>Completed</option>
+              <option>Cancelled</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Reason for Visit</label>
+            <input type="text" id="aReason" placeholder="e.g. Routine check-up">
+          </div>
+        </div>
+
+        <div class="divider"></div>
+        <div style="display:flex;gap:12px;">
+          <button class="btn btn-primary" onclick="scheduleAppointment()">Schedule Appointment</button>
+          <button class="btn btn-ghost" onclick="clearApptForm()">Clear</button>
+        </div>
+      </div>
+
+      <div class="table-card">
+        <div class="table-header">
+          <span class="table-title">All Appointments</span>
+          <span id="apptCount" style="font-size:12px;color:var(--muted);">0 records</span>
+        </div>
+        <div id="apptTable">
+          <div class="empty-state">
+            <div class="empty-icon">📅</div>
+            <div class="empty-text">No appointments scheduled yet.</div>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <script src="../js/main.js"></script>
+  <script>
+    function scheduleAppointment() {
+      const patient = document.getElementById('aPatient').value.trim();
+      const doctor  = document.getElementById('aDoctor').value;
+      const date    = document.getElementById('aDate').value;
+      const time    = document.getElementById('aTime').value;
+      const status  = document.getElementById('aStatus').value;
+      const reason  = document.getElementById('aReason').value.trim();
+
+      if (!patient || !doctor || !date || !time) {
+        alert('Please fill all required fields (marked with *).');
+        return;
+      }
+
+      const appts = JSON.parse(localStorage.getItem('mf_appointments') || '[]');
+      const id = 'A' + String(appts.length + 1).padStart(3, '0');
+      appts.push({ id, patient, doctor, date, time, status, reason });
+      localStorage.setItem('mf_appointments', JSON.stringify(appts));
+
+      const alert = document.getElementById('apptSuccess');
+      alert.classList.add('show');
+      setTimeout(() => alert.classList.remove('show'), 3000);
+
+      clearApptForm();
+      renderApptTable();
+    }
+
+    function clearApptForm() {
+      ['aPatient','aDate','aReason'].forEach(id => document.getElementById(id).value = '');
+      ['aDoctor','aTime'].forEach(id => document.getElementById(id).value = '');
+      document.getElementById('aStatus').value = 'Confirmed';
+    }
+
+    function deleteAppt(id) {
+      if (!confirm('Delete this appointment?')) return;
+      let appts = JSON.parse(localStorage.getItem('mf_appointments') || '[]');
+      appts = appts.filter(a => a.id !== id);
+      localStorage.setItem('mf_appointments', JSON.stringify(appts));
+      renderApptTable();
+    }
+
+    function updateStatus(id, status) {
+      let appts = JSON.parse(localStorage.getItem('mf_appointments') || '[]');
+      appts = appts.map(a => a.id === id ? {...a, status} : a);
+      localStorage.setItem('mf_appointments', JSON.stringify(appts));
+      renderApptTable();
+    }
+
+    function renderApptTable() {
+      const appts = JSON.parse(localStorage.getItem('mf_appointments') || '[]');
+      document.getElementById('apptCount').textContent = appts.length + ' records';
+      if (appts.length === 0) {
+        document.getElementById('apptTable').innerHTML = `
+          <div class="empty-state"><div class="empty-icon">📅</div>
+          <div class="empty-text">No appointments scheduled yet.</div></div>`;
+        return;
+      }
+      document.getElementById('apptTable').innerHTML = `
+        <table>
+          <thead><tr><th>ID</th><th>Patient</th><th>Doctor</th><th>Date</th><th>Time</th><th>Status</th><th>Actions</th></tr></thead>
+          <tbody>${appts.map(a => {
+            const cls = a.status==='Confirmed' ? 'badge-success' : a.status==='Completed' ? 'badge-purple' : a.status==='Cancelled' ? 'badge-danger' : 'badge-warning';
+            return `<tr>
+              <td class="td-muted">${a.id}</td>
+              <td>${a.patient}</td>
+              <td class="td-muted">${a.doctor}</td>
+              <td class="td-muted">${a.date}</td>
+              <td class="td-muted">${a.time}</td>
+              <td><span class="badge ${cls}">${a.status}</span></td>
+              <td style="display:flex;gap:6px;flex-wrap:wrap;">
+                <button class="btn btn-ghost" style="padding:4px 8px;font-size:11px;" onclick="updateStatus('${a.id}','Completed')">✓ Done</button>
+                <button class="btn btn-danger" style="padding:4px 8px;font-size:11px;" onclick="deleteAppt('${a.id}')">Delete</button>
+              </td>
+            </tr>`;
+          }).join('')}
+          </tbody>
+        </table>`;
+    }
+
+    renderApptTable();
+  </script>
+</body>
+</html>
