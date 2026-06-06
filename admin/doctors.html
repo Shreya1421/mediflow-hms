@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Doctors — MediFlow Admin</title>
+  <link rel="stylesheet" href="../css/style.css">
+  <link rel="stylesheet" href="../css/admin.css">
+</head>
+<body>
+<nav class="admin-topnav">
+  <a href="../index.html" class="admin-topnav-logo"><div class="admin-topnav-logo-icon">🏥</div>Medi<span>Flow</span></a>
+  <span class="admin-topnav-badge">🛡️ Admin Portal</span>
+  <div class="admin-topnav-spacer"></div>
+  <div class="admin-topnav-user">
+    <div class="admin-topnav-avatar">A</div>
+    <span id="adminName">Admin</span>
+    <a href="#" class="admin-topnav-logout" onclick="adminLogout()">Logout</a>
+  </div>
+</nav>
+<aside class="admin-sidebar">
+  <div class="admin-sidebar-label">Overview</div>
+  <a href="dashboard.html"><span class="admin-sidebar-icon">📊</span> Dashboard</a>
+  <div class="admin-sidebar-label">Management</div>
+  <a href="doctors.html" class="active"><span class="admin-sidebar-icon">🩺</span> Doctors</a>
+  <a href="patients.html"><span class="admin-sidebar-icon">🧑‍⚕️</span> Patients</a>
+  <a href="appointments.html"><span class="admin-sidebar-icon">📅</span> Appointments</a>
+  <div class="admin-sidebar-label">Reports</div>
+  <a href="reports.html"><span class="admin-sidebar-icon">📋</span> Weekly Reports</a>
+  <div class="admin-sidebar-label">Settings</div>
+  <a href="settings.html"><span class="admin-sidebar-icon">⚙️</span> Settings</a>
+  <a href="../index.html"><span class="admin-sidebar-icon">🌐</span> View Site</a>
+</aside>
+<main class="admin-main">
+  <div class="admin-page-header">
+    <div class="admin-page-eyebrow">Management</div>
+    <h1 class="admin-page-title">Doctors & Nurses</h1>
+    <p class="admin-page-sub">Add, edit, and manage all medical staff.</p>
+  </div>
+  <div class="admin-alert" id="alertBox"></div>
+
+  <!-- Add Doctor Form -->
+  <div class="admin-card" style="margin-bottom:24px;">
+    <div class="admin-card-header">
+      <span class="admin-card-title">➕ Add New Doctor / Nurse</span>
+      <button class="admin-btn admin-btn-outline admin-btn-sm" onclick="toggleForm()">Toggle Form</button>
+    </div>
+    <div id="addForm">
+      <div class="admin-form-grid">
+        <div class="admin-form-group"><label>Full Name *</label><input type="text" id="dName" placeholder="Dr. Rajesh Kumar"></div>
+        <div class="admin-form-group"><label>Role *</label>
+          <select id="dRole"><option value="Doctor">Doctor</option><option value="Nurse">Nurse</option><option value="Specialist">Specialist</option></select></div>
+        <div class="admin-form-group"><label>Department *</label>
+          <select id="dDept"><option value="">Select</option><option>General</option><option>Cardiology</option><option>Neurology</option><option>Orthopaedics</option><option>Gynaecology</option><option>Paediatrics</option><option>Dermatology</option><option>ENT</option><option>Radiology</option><option>Pathology</option></select></div>
+        <div class="admin-form-group"><label>Phone *</label><input type="tel" id="dPhone" placeholder="9876543210"></div>
+        <div class="admin-form-group"><label>Email *</label><input type="email" id="dEmail" placeholder="doctor@mediflow.com"></div>
+        <div class="admin-form-group"><label>Login Password *</label><input type="text" id="dPass" placeholder="Min 6 chars"></div>
+        <div class="admin-form-group"><label>Qualification</label><input type="text" id="dQual" placeholder="MBBS, MD Cardiology"></div>
+        <div class="admin-form-group"><label>Experience (years)</label><input type="number" id="dExp" placeholder="5" min="0"></div>
+        <div class="admin-form-group admin-form-full"><label>Availability</label><input type="text" id="dAvail" placeholder="Mon–Fri, 9AM–5PM"></div>
+      </div>
+      <div class="admin-form-actions">
+        <button class="admin-btn admin-btn-primary" onclick="addDoctor()">Add Doctor</button>
+        <button class="admin-btn admin-btn-outline" onclick="clearForm()">Clear</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Doctors Table -->
+  <div class="admin-card">
+    <div class="admin-card-header">
+      <span class="admin-card-title">All Medical Staff</span>
+      <div style="display:flex;gap:10px;align-items:center;">
+        <div class="admin-search"><span>🔍</span><input type="text" id="searchInput" placeholder="Search by name or dept..." oninput="renderTable()"></div>
+        <span id="doctorCount" style="font-size:12px;color:var(--muted);">0 staff</span>
+      </div>
+    </div>
+    <div class="admin-card-body">
+      <div id="doctorTable"></div>
+    </div>
+  </div>
+</main>
+
+<script src="../js/auth.js"></script>
+<script src="../js/admin.js"></script>
+<script>
+  requireAdmin();
+  const s = getSession(); if(s) document.getElementById('adminName').textContent = s.name||'Admin';
+
+  function toggleForm() { const f=document.getElementById('addForm'); f.style.display=f.style.display==='none'?'block':'none'; }
+
+  function addDoctor() {
+    const name  = document.getElementById('dName').value.trim();
+    const role  = document.getElementById('dRole').value;
+    const dept  = document.getElementById('dDept').value;
+    const phone = document.getElementById('dPhone').value.trim();
+    const email = document.getElementById('dEmail').value.trim();
+    const pass  = document.getElementById('dPass').value;
+    const qual  = document.getElementById('dQual').value.trim();
+    const exp   = document.getElementById('dExp').value;
+    const avail = document.getElementById('dAvail').value.trim();
+    if (!name||!dept||!phone||!email||!pass) { showAlert('alertBox','Please fill all required fields.','error'); return; }
+    const doctors = getDoctors();
+    const id = nextId('DOC', doctors);
+    saveDoctor({ id, name, role, dept, phone, email, password:pass, qual, exp, avail, patients:[] });
+    showAlert('alertBox', `${name} added successfully! Login ID: ${id}`);
+    clearForm(); renderTable();
+  }
+
+  function clearForm() {
+    ['dName','dPhone','dEmail','dPass','dQual','dExp','dAvail'].forEach(i=>document.getElementById(i).value='');
+    document.getElementById('dDept').value=''; document.getElementById('dRole').value='Doctor';
+  }
+
+  function deleteDoctor(id) {
+    if (!confirm('Delete this doctor? This cannot be undone.')) return;
+    deleteById('mf_doctors', id);
+    showAlert('alertBox','Doctor removed successfully.');
+    renderTable();
+  }
+
+  function renderTable() {
+    const q = document.getElementById('searchInput').value.toLowerCase();
+    let doctors = getDoctors().filter(d => !q || d.name.toLowerCase().includes(q) || d.dept.toLowerCase().includes(q));
+    document.getElementById('doctorCount').textContent = doctors.length + ' staff';
+    if (!doctors.length) {
+      document.getElementById('doctorTable').innerHTML = '<div class="admin-empty"><div class="admin-empty-icon">🩺</div><div class="admin-empty-text">No doctors found.</div></div>';
+      return;
+    }
+    const patients = getPatients();
+    document.getElementById('doctorTable').innerHTML = `
+      <table class="admin-table">
+        <thead><tr><th>ID</th><th>Name</th><th>Role</th><th>Dept</th><th>Phone</th><th>Login ID</th><th>Patients</th><th>Actions</th></tr></thead>
+        <tbody>${doctors.map(d => {
+          const pts = patients.filter(p=>p.doctor===d.id).length;
+          return `<tr>
+            <td class="td-muted">${d.id}</td>
+            <td><strong>${d.name}</strong><br><span style="font-size:11px;color:var(--muted);">${d.qual||''}</span></td>
+            <td><span class="badge badge-navy">${d.role||'Doctor'}</span></td>
+            <td><span class="badge badge-teal">${d.dept}</span></td>
+            <td class="td-muted">${d.phone}</td>
+            <td class="td-muted">${d.id}</td>
+            <td class="td-muted">${pts}</td>
+            <td style="display:flex;gap:6px;flex-wrap:wrap;">
+              <a href="doctor-detail.html?id=${d.id}" class="admin-btn admin-btn-outline admin-btn-sm">View</a>
+              <button class="admin-btn admin-btn-danger admin-btn-sm" onclick="deleteDoctor('${d.id}')">Delete</button>
+            </td>
+          </tr>`;
+        }).join('')}</tbody>
+      </table>`;
+  }
+  renderTable();
+</script>
+</body>
+</html>
