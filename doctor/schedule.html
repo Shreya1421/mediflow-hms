@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>My Schedule — MediFlow Doctor</title>
+  <link rel="stylesheet" href="../css/style.css">
+  <link rel="stylesheet" href="../css/doctor.css">
+</head>
+<body>
+<nav class="doctor-topnav">
+  <a href="../index.html" class="doctor-topnav-logo"><div class="doctor-topnav-logo-icon">🏥</div>Medi<span>Flow</span></a>
+  <span class="doctor-topnav-badge">🩺 Doctor Portal</span>
+  <div class="doctor-topnav-spacer"></div>
+  <div class="doctor-topnav-user">
+    <div class="doctor-topnav-avatar" id="doctorInitial">D</div>
+    <span id="doctorName">Doctor</span>
+    <a href="#" class="doctor-topnav-logout" onclick="doctorLogout()">Logout</a>
+  </div>
+</nav>
+<aside class="doctor-sidebar">
+  <div class="doctor-sidebar-label">Overview</div>
+  <a href="dashboard.html"><span class="doctor-sidebar-icon">📊</span> Dashboard</a>
+  <div class="doctor-sidebar-label">My Work</div>
+  <a href="schedule.html" class="active"><span class="doctor-sidebar-icon">📅</span> My Schedule</a>
+  <a href="appointments.html"><span class="doctor-sidebar-icon">🗓️</span> Appointments</a>
+  <a href="patients.html"><span class="doctor-sidebar-icon">🧑‍⚕️</span> My Patients</a>
+  <div class="doctor-sidebar-label">Reports</div>
+  <a href="reports.html"><span class="doctor-sidebar-icon">📋</span> My Reports</a>
+  <div class="doctor-sidebar-label">Account</div>
+  <a href="profile.html"><span class="doctor-sidebar-icon">👤</span> My Profile</a>
+  <a href="../index.html"><span class="doctor-sidebar-icon">🌐</span> View Site</a>
+</aside>
+<main class="doctor-main">
+  <div class="doctor-page-header">
+    <div class="doctor-page-eyebrow">Schedule</div>
+    <h1 class="doctor-page-title">My Weekly Schedule</h1>
+    <p class="doctor-page-sub" id="weekLabel">Loading...</p>
+  </div>
+  <div style="display:flex;gap:10px;margin-bottom:20px;align-items:center;">
+    <button class="doctor-btn doctor-btn-outline" onclick="changeWeek(-1)">← Previous Week</button>
+    <button class="doctor-btn doctor-btn-primary" onclick="goToday()">Today</button>
+    <button class="doctor-btn doctor-btn-outline" onclick="changeWeek(1)">Next Week →</button>
+  </div>
+  <div class="doctor-card">
+    <div class="schedule-grid" id="scheduleGrid"></div>
+  </div>
+  <div class="doctor-card" style="margin-top:20px;">
+    <div class="doctor-card-header"><span class="doctor-card-title">All Appointments This Week</span><span id="weekCount" style="font-size:12px;color:var(--muted);"></span></div>
+    <div id="weekList"></div>
+  </div>
+</main>
+<script src="../js/auth.js"></script>
+<script src="../js/doctor.js"></script>
+<script>
+  requireDoctor();
+  buildDocNav();
+  const s = getSession();
+  let weekOffset = 0;
+
+  const DAYS = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+  const DAYS_FULL = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+
+  function getWeekDates(offset) {
+    const now = new Date();
+    now.setDate(now.getDate() + offset * 7);
+    const day = now.getDay();
+    const mon = new Date(now); mon.setDate(now.getDate() - (day===0?6:day-1));
+    return Array.from({length:7}, (_,i) => { const d=new Date(mon); d.setDate(mon.getDate()+i); return d; });
+  }
+
+  function renderSchedule() {
+    const dates = getWeekDates(weekOffset);
+    const today = new Date().toISOString().slice(0,10);
+    const apts  = getMyAppointments(s.doctorId);
+    document.getElementById('weekLabel').textContent =
+      `${dates[0].toDateString()} – ${dates[6].toDateString()}`;
+
+    const grid = document.getElementById('scheduleGrid');
+    grid.innerHTML = dates.map(d => {
+      const ds = d.toISOString().slice(0,10);
+      const dayApts = apts.filter(a=>a.date===ds).sort((a,b)=>a.time>b.time?1:-1);
+      const isToday = ds===today;
+      return `<div class="schedule-day ${isToday?'today':''}">
+        <div class="schedule-day-name">${DAYS[d.getDay()]}</div>
+        <div class="schedule-day-date">${d.getDate()}</div>
+        ${dayApts.map(a=>`<div class="schedule-apt ${a.status==='Pending'?'pending':a.status==='Completed'?'completed':''}" title="${a.patientName} — ${a.reason||''}">
+          ${a.time}<br>${a.patientName.split(' ')[0]}
+        </div>`).join('')}
+        ${!dayApts.length?'<div style="font-size:11px;color:var(--muted);margin-top:6px;">Free</div>':''}
+      </div>`;
+    }).join('');
+
+    // Week list
+    const weekApts = apts.filter(a=>a.date>=dates[0].toISOString().slice(0,10)&&a.date<=dates[6].toISOString().slice(0,10));
+    document.getElementById('weekCount').textContent = weekApts.length + ' appointments';
+    if (weekApts.length) {
+      document.getElementById('weekList').innerHTML = `
+        <table class="doctor-table">
+          <thead><tr><th>Day</th><th>Date</th><th>Time</th><th>Patient</th><th>Reason</th><th>Status</th><th>Action</th></tr></thead>
+          <tbody>${weekApts.sort((a,b)=>a.date>b.date?1:-1).map(a=>`<tr>
+            <td class="td-muted">${DAYS_FULL[new Date(a.date).getDay()]}</td>
+            <td><strong>${a.date}</strong></td>
+            <td class="td-muted">${a.time}</td>
+            <td>${a.patientName}</td>
+            <td class="td-muted">${a.reason||'—'}</td>
+            <td><span class="badge badge-${a.status.toLowerCase()}">${a.status}</span></td>
+            <td><button class="doctor-btn doctor-btn-outline doctor-btn-sm" onclick="markDone('${a.id}')">✓ Done</button></td>
+          </tr>`).join('')}</tbody>
+        </table>`;
+    } else {
+      document.getElementById('weekList').innerHTML='<div class="doctor-empty"><div class="doctor-empty-icon">📅</div><div>No appointments this week.</div></div>';
+    }
+  }
+
+  function changeWeek(dir) { weekOffset+=dir; renderSchedule(); }
+  function goToday() { weekOffset=0; renderSchedule(); }
+  function markDone(id) {
+    const apts=DB.get('mf_appointments');
+    const a=apts.find(x=>x.id===id);
+    if(a){a.status='Completed';DB.set('mf_appointments',apts);renderSchedule();}
+  }
+  renderSchedule();
+</script>
+</body>
+</html>
