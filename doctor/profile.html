@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>My Profile — MediFlow Doctor</title>
+  <link rel="stylesheet" href="../css/style.css">
+  <link rel="stylesheet" href="../css/doctor.css">
+</head>
+<body>
+<nav class="doctor-topnav">
+  <a href="../index.html" class="doctor-topnav-logo"><div class="doctor-topnav-logo-icon">🏥</div>Medi<span>Flow</span></a>
+  <span class="doctor-topnav-badge">🩺 Doctor Portal</span>
+  <div class="doctor-topnav-spacer"></div>
+  <div class="doctor-topnav-user">
+    <div class="doctor-topnav-avatar" id="doctorInitial">D</div>
+    <span id="doctorName">Doctor</span>
+    <a href="#" class="doctor-topnav-logout" onclick="doctorLogout()">Logout</a>
+  </div>
+</nav>
+<aside class="doctor-sidebar">
+  <div class="doctor-sidebar-label">Overview</div>
+  <a href="dashboard.html"><span class="doctor-sidebar-icon">📊</span> Dashboard</a>
+  <div class="doctor-sidebar-label">My Work</div>
+  <a href="schedule.html"><span class="doctor-sidebar-icon">📅</span> My Schedule</a>
+  <a href="appointments.html"><span class="doctor-sidebar-icon">🗓️</span> Appointments</a>
+  <a href="patients.html"><span class="doctor-sidebar-icon">🧑‍⚕️</span> My Patients</a>
+  <div class="doctor-sidebar-label">Reports</div>
+  <a href="reports.html"><span class="doctor-sidebar-icon">📋</span> My Reports</a>
+  <div class="doctor-sidebar-label">Account</div>
+  <a href="profile.html" class="active"><span class="doctor-sidebar-icon">👤</span> My Profile</a>
+  <a href="../index.html"><span class="doctor-sidebar-icon">🌐</span> View Site</a>
+</aside>
+<main class="doctor-main">
+  <div class="doctor-page-header">
+    <div class="doctor-page-eyebrow">Account</div>
+    <h1 class="doctor-page-title">My Profile</h1>
+    <p class="doctor-page-sub">View and update your professional details and availability.</p>
+  </div>
+  <div class="doctor-alert" id="alertBox"></div>
+  <div class="doctor-grid-2">
+    <div class="doctor-card">
+      <div class="doctor-card-header"><span class="doctor-card-title">👤 Profile Details</span></div>
+      <div class="doctor-form-grid">
+        <div class="doctor-form-group"><label>Full Name</label><input type="text" id="dName"></div>
+        <div class="doctor-form-group"><label>Department</label><input type="text" id="dDept" readonly style="background:var(--bg2);"></div>
+        <div class="doctor-form-group"><label>Phone</label><input type="tel" id="dPhone"></div>
+        <div class="doctor-form-group"><label>Email</label><input type="email" id="dEmail"></div>
+        <div class="doctor-form-group"><label>Qualification</label><input type="text" id="dQual"></div>
+        <div class="doctor-form-group"><label>Experience (years)</label><input type="number" id="dExp"></div>
+        <div class="doctor-form-group doctor-form-full"><label>Availability</label><input type="text" id="dAvail" placeholder="Mon–Fri, 9AM–5PM"></div>
+      </div>
+      <div class="doctor-form-actions">
+        <button class="doctor-btn doctor-btn-primary" onclick="saveProfile()">Save Changes</button>
+      </div>
+    </div>
+    <div class="doctor-card">
+      <div class="doctor-card-header"><span class="doctor-card-title">🔑 Change Password</span></div>
+      <div class="doctor-form-grid">
+        <div class="doctor-form-group doctor-form-full"><label>Current Password</label><input type="password" id="oldPass" placeholder="Current password"></div>
+        <div class="doctor-form-group doctor-form-full"><label>New Password</label><input type="password" id="newPass" placeholder="New password (min 6 chars)"></div>
+      </div>
+      <div class="doctor-form-actions">
+        <button class="doctor-btn doctor-btn-primary" onclick="changePassword()">Update Password</button>
+      </div>
+      <div style="padding:20px 24px;border-top:1px solid var(--border);">
+        <div style="font-size:12px;color:var(--muted);margin-bottom:8px;font-weight:600;">YOUR LOGIN CREDENTIALS</div>
+        <div style="font-size:13px;color:var(--text);line-height:2;background:var(--bg);border-radius:8px;padding:12px 14px;">
+          <span style="color:var(--muted);">Login ID:</span> <strong id="loginId">—</strong><br>
+          <span style="color:var(--muted);">Portal:</span> <strong>Doctor Portal</strong>
+        </div>
+      </div>
+    </div>
+  </div>
+</main>
+<script src="../js/auth.js"></script>
+<script src="../js/doctor.js"></script>
+<script>
+  requireDoctor();
+  buildDocNav();
+  const s = getSession();
+
+  function loadProfile() {
+    const doc = DB.get('mf_doctors').find(d=>d.id===s.doctorId);
+    if (!doc) return;
+    document.getElementById('dName').value  = doc.name||'';
+    document.getElementById('dDept').value  = doc.dept||'';
+    document.getElementById('dPhone').value = doc.phone||'';
+    document.getElementById('dEmail').value = doc.email||'';
+    document.getElementById('dQual').value  = doc.qual||'';
+    document.getElementById('dExp').value   = doc.exp||'';
+    document.getElementById('dAvail').value = doc.avail||'';
+    document.getElementById('loginId').textContent = doc.id;
+  }
+
+  function saveProfile() {
+    const docs=DB.get('mf_doctors');
+    const idx=docs.findIndex(d=>d.id===s.doctorId);
+    if(idx<0) return;
+    docs[idx].name  = document.getElementById('dName').value.trim();
+    docs[idx].phone = document.getElementById('dPhone').value.trim();
+    docs[idx].email = document.getElementById('dEmail').value.trim();
+    docs[idx].qual  = document.getElementById('dQual').value.trim();
+    docs[idx].exp   = document.getElementById('dExp').value;
+    docs[idx].avail = document.getElementById('dAvail').value.trim();
+    DB.set('mf_doctors',docs);
+    showDoctorAlert('alertBox','Profile updated successfully.');
+  }
+
+  function changePassword() {
+    const oldP=document.getElementById('oldPass').value;
+    const newP=document.getElementById('newPass').value;
+    const docs=DB.get('mf_doctors');
+    const doc=docs.find(d=>d.id===s.doctorId);
+    if(!doc||doc.password!==oldP){showDoctorAlert('alertBox','Current password is incorrect.','error');return;}
+    if(newP.length<6){showDoctorAlert('alertBox','New password must be at least 6 characters.','error');return;}
+    doc.password=newP;
+    DB.set('mf_doctors',docs);
+    showDoctorAlert('alertBox','Password changed successfully.');
+    document.getElementById('oldPass').value='';
+    document.getElementById('newPass').value='';
+  }
+  loadProfile();
+</script>
+</body>
+</html>
