@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MediFlow HMS — Healthcare Operations, Simplified</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<!-- Topbar -->
+<div class="topbar">
+  📞 +91 98000 00000 <span>|</span> support@mediflow.com <span>|</span> Mon–Sat, 9AM–6PM
+</div>
+
+<!-- Navbar -->
+<nav class="navbar">
+  <div class="nav-inner">
+    <a href="index.html" class="nav-logo">
+      <div class="nav-logo-icon">🏥</div>
+      <span class="nav-logo-text">Medi<span>Flow</span></span>
+    </a>
+    <div class="nav-links">
+      <a href="index.html" class="active">Home</a>
+      <a href="#features">Features</a>
+      <a href="#about">About</a>
+      <a href="#contact">Contact</a>
+    </div>
+    <div class="nav-spacer"></div>
+    <button class="btn-login" onclick="document.getElementById('portalModal').classList.add('open')">
+      🔐 Login
+    </button>
+  </div>
+</nav>
+
+<!-- Portal Selector Modal -->
+<div class="modal-overlay" id="portalModal">
+  <div class="modal-box">
+    <button class="modal-close" onclick="document.getElementById('portalModal').classList.remove('open')">×</button>
+    <div class="modal-title">Select Your Portal</div>
+    <div class="modal-sub">Choose your role to continue to the login page.</div>
+    <div class="portal-options">
+      <a href="login-admin.html" class="portal-option">
+        <div class="portal-opt-icon" style="background:#EEF2FB;">🛡️</div>
+        <div>
+          <div class="portal-opt-name">Admin Portal</div>
+          <div class="portal-opt-desc">Manage doctors, patients, reports and full system</div>
+        </div>
+        <span style="margin-left:auto;color:var(--muted);">→</span>
+      </a>
+      <a href="login-doctor.html" class="portal-option">
+        <div class="portal-opt-icon" style="background:#E6F5F5;">🩺</div>
+        <div>
+          <div class="portal-opt-name">Doctor Portal</div>
+          <div class="portal-opt-desc">View schedule, patients, notes and reports</div>
+        </div>
+        <span style="margin-left:auto;color:var(--muted);">→</span>
+      </a>
+      <a href="login-patient.html" class="portal-option">
+        <div class="portal-opt-icon" style="background:#E8F6ED;">🧑‍⚕️</div>
+        <div>
+          <div class="portal-opt-name">Patient Portal</div>
+          <div class="portal-opt-desc">Book appointments, view history and profile</div>
+        </div>
+        <span style="margin-left:auto;color:var(--muted);">→</span>
+      </a>
+    </div>
+  </div>
+</div>
+
+<!-- Hero -->
+<section class="hero">
+  <div class="hero-inner">
+    <div class="hero-content">
+      <div class="hero-eyebrow">⭐ Trusted by 400+ Healthcare Facilities</div>
+      <h1 class="hero-title">Healthcare Operations,<br><span>Simplified.</span></h1>
+      <p class="hero-subtitle">An enterprise-grade Hospital Management System that unifies appointments, patient records, doctor schedules, and weekly reports into one secure, integrated platform.</p>
+      <div class="hero-btns">
+        <button class="btn-primary" onclick="document.getElementById('portalModal').classList.add('open')">→ Get Started</button>
+        <a href="#features" class="btn-outline">See Features</a>
+      </div>
+      <div class="hero-stats">
+        <div><div class="hero-stat-num">3</div><div class="hero-stat-label">Portals</div></div>
+        <div><div class="hero-stat-num">25+</div><div class="hero-stat-label">Features</div></div>
+        <div><div class="hero-stat-num">100%</div><div class="hero-stat-label">Secure</div></div>
+      </div>
+    </div>
+    <div class="hero-panel">
+      <div class="hero-panel-title">Access Your Portal</div>
+      <a href="login-admin.html" class="portal-pill">
+        <span class="portal-pill-icon">🛡️</span>
+        <div>
+          <div class="portal-pill-name">Admin Portal</div>
+          <div class="portal-pill-sub">Full system control</div>
+        </div>
+        <span class="portal-pill-arrow">→</span>
+      </a>
+      <a href="login-doctor.html" class="portal-pill">
+        <span class="portal-pill-icon">🩺</span>
+        <div>
+          <div class="portal-pill-name">Doctor Portal</div>
+          <div class="portal-pill-sub">Schedule & patients</div>
+        </div>
+        <span class="portal-pill-arrow">→</span>
+      </a>
+      <a href="login-patient.html" class="portal-pill">
+        <span class="portal-pill-icon">🧑‍⚕️</span>
+        <div>
+          <div class="portal-pill-name">Patient Portal</div>
+          <div class="portal-pill-sub">Book & track appointments</div>
+        </div>
+        <span class="portal-pill-arrow">→</span>
+      </a>
+      <div style="margin-top:20px;padding-top:16px;border-top:1px solid rgba(255,255,255,0.12);">
+        <div style="font-size:11px;color:rgba(255,255,255,0.4);margin-bottom:8px;">DEMO CREDENTIALS</div>
+        <div style="font-size:12px;color:rgba(255,255,255,0.6);line-height:2;">
+          Admin: admin@mediflow.com / Admin@123<br>
+          Doctor: DOC001 / Doctor@123
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Features -->
+<section class="section features" id="features">
+  <div class="section-inner">
+    <div class="section-eyebrow">Platform Features</div>
+    <h2 class="section-title">Everything Your Hospital Needs — <span>In One Platform</span></h2>
+    <p class="section-sub">Every module is connected. Data flows automatically between appointments, patient records, and reports — no manual re-entry, no data silos.</p>
+    <div class="features-grid">
+      <div class="feat-card">
+        <div class="feat-icon">📊</div>
+        <div class="feat-title">Live Dashboard</div>
+        <div class="feat-desc">Real-time stats on patients, appointments, doctor availability, and departmental performance all in one view.</div>
+        <div class="feat-tags"><span class="feat-tag">Admin</span><span class="feat-tag">Doctor</span><span class="feat-tag">Patient</span></div>
+      </div>
+      <div class="feat-card">
+        <div class="feat-icon">📅</div>
+        <div class="feat-title">Smart Appointment Scheduling</div>
+        <div class="feat-desc">Patients book online. Doctors see their full schedule. Admins manage, reassign, and track all appointments across departments.</div>
+        <div class="feat-tags"><span class="feat-tag">Booking</span><span class="feat-tag">Calendar</span><span class="feat-tag">Time Slots</span></div>
+      </div>
+      <div class="feat-card">
+        <div class="feat-icon">🧑‍⚕️</div>
+        <div class="feat-title">Patient Records & History</div>
+        <div class="feat-desc">Complete patient profiles with visit history, diagnoses, doctor notes, blood group, and contact information securely stored.</div>
+        <div class="feat-tags"><span class="feat-tag">EHR</span><span class="feat-tag">History</span><span class="feat-tag">Secure</span></div>
+      </div>
+      <div class="feat-card">
+        <div class="feat-icon">🩺</div>
+        <div class="feat-title">Doctor Management</div>
+        <div class="feat-desc">Add doctors and nurses, assign departments, set availability, and monitor workload from the admin panel.</div>
+        <div class="feat-tags"><span class="feat-tag">Admin</span><span class="feat-tag">Departments</span></div>
+      </div>
+      <div class="feat-card">
+        <div class="feat-icon">📋</div>
+        <div class="feat-title">Weekly Reports & PDF Export</div>
+        <div class="feat-desc">Auto-generated weekly summaries with appointment trends, patient stats, and department performance. Download as PDF instantly.</div>
+        <div class="feat-tags"><span class="feat-tag">Reports</span><span class="feat-tag">PDF</span><span class="feat-tag">Analytics</span></div>
+      </div>
+      <div class="feat-card">
+        <div class="feat-icon">🔐</div>
+        <div class="feat-title">Role-Based Access Control</div>
+        <div class="feat-desc">Three separate portals — Admin, Doctor, Patient — each with tailored access. No role sees what it shouldn't.</div>
+        <div class="feat-tags"><span class="feat-tag">Security</span><span class="feat-tag">Privacy</span></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Portals -->
+<section class="section portals" id="portals">
+  <div class="section-inner">
+    <div class="section-eyebrow">Three Portals</div>
+    <h2 class="section-title">One System. <span>Three Experiences.</span></h2>
+    <p class="section-sub">Each role gets a purpose-built interface designed for exactly what they need to do — nothing more, nothing less.</p>
+    <div class="portals-grid">
+      <a href="login-admin.html" class="portal-card admin-card">
+        <div class="portal-card-icon">🛡️</div>
+        <div class="portal-card-name">Admin Portal</div>
+        <div class="portal-card-desc">Full system oversight and control. Manage every aspect of hospital operations from a single dashboard.</div>
+        <ul class="portal-features">
+          <li>Manage doctors & nurses</li>
+          <li>View all patient records</li>
+          <li>Monitor all appointments</li>
+          <li>Generate weekly PDF reports</li>
+          <li>Department-wise analytics</li>
+        </ul>
+        <span class="portal-card-btn">Login as Admin →</span>
+      </a>
+      <a href="login-doctor.html" class="portal-card doctor-card">
+        <div class="portal-card-icon">🩺</div>
+        <div class="portal-card-name">Doctor Portal</div>
+        <div class="portal-card-desc">Focus entirely on patient care. Your schedule, your patients, your notes — all in one place.</div>
+        <ul class="portal-features">
+          <li>Today's appointment schedule</li>
+          <li>Assigned patient list</li>
+          <li>Patient history & contact</li>
+          <li>Add diagnosis & notes</li>
+          <li>Own weekly report</li>
+        </ul>
+        <span class="portal-card-btn">Login as Doctor →</span>
+      </a>
+      <a href="login-patient.html" class="portal-card patient-card">
+        <div class="portal-card-icon">🧑‍⚕️</div>
+        <div class="portal-card-name">Patient Portal</div>
+        <div class="portal-card-desc">Self-service healthcare. Book appointments, track visits, and manage your own health records.</div>
+        <ul class="portal-features">
+          <li>Book appointments online</li>
+          <li>View upcoming schedule</li>
+          <li>Full visit history</li>
+          <li>Browse doctors by dept</li>
+          <li>Edit personal profile</li>
+        </ul>
+        <span class="portal-card-btn">Login as Patient →</span>
+      </a>
+    </div>
+  </div>
+</section>
+
+<!-- About -->
+<section class="section about" id="about">
+  <div class="section-inner">
+    <div class="about-grid">
+      <div>
+        <div class="about-eyebrow">About MediFlow</div>
+        <h2 class="about-title">Built for Indian Healthcare, Designed for Everyone</h2>
+        <p class="about-body">MediFlow HMS was built to solve the everyday operational chaos that hospitals and clinics across India face — disconnected systems, manual paperwork, scheduling conflicts, and no real-time visibility into operations.</p>
+        <p class="about-body">Our platform brings patients, doctors, and administrators onto a single unified system so that data flows seamlessly between every module — from the moment a patient books an appointment to when the doctor closes the case.</p>
+        <div class="about-values">
+          <div class="about-value"><div class="about-value-icon">🔒</div><div class="about-value-name">Secure by Default</div><div class="about-value-desc">Role-based access ensures data privacy at every level.</div></div>
+          <div class="about-value"><div class="about-value-icon">⚡</div><div class="about-value-name">Real-Time</div><div class="about-value-desc">Live updates across all portals instantly.</div></div>
+          <div class="about-value"><div class="about-value-icon">📱</div><div class="about-value-name">Accessible</div><div class="about-value-desc">Works on any device — desktop, tablet, mobile.</div></div>
+          <div class="about-value"><div class="about-value-icon">📊</div><div class="about-value-name">Data-Driven</div><div class="about-value-desc">Weekly reports give actionable operational insights.</div></div>
+        </div>
+      </div>
+      <div class="about-visual">
+        <div class="about-stat"><div class="about-stat-num">3</div><div class="about-stat-label">Role-based portals</div></div>
+        <div class="about-stat"><div class="about-stat-num">25+</div><div class="about-stat-label">Built-in features</div></div>
+        <div class="about-stat"><div class="about-stat-num">100%</div><div class="about-stat-label">Browser-based</div></div>
+        <div class="about-stat"><div class="about-stat-num">0</div><div class="about-stat-label">Installation needed</div></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Contact -->
+<section class="section" id="contact" style="background:var(--bg2);">
+  <div class="section-inner">
+    <div class="section-eyebrow">Contact</div>
+    <h2 class="section-title">Get In Touch</h2>
+    <p class="section-sub">Have questions about MediFlow? Reach out and we'll get back to you within one business day.</p>
+    <div style="max-width:520px;margin:0 auto;background:var(--white);border-radius:var(--radius-lg);padding:36px;border:1px solid var(--border);">
+      <div class="form-group"><label>Your Name</label><input type="text" placeholder="e.g. Dr. Amit Sharma"></div>
+      <div class="form-group"><label>Email Address</label><input type="email" placeholder="you@hospital.com"></div>
+      <div class="form-group"><label>Message</label><textarea style="width:100%;padding:11px 14px;border:1.5px solid var(--border);border-radius:8px;font-family:var(--font-body);font-size:14px;outline:none;resize:vertical;" rows="4" placeholder="Tell us about your hospital's needs..."></textarea></div>
+      <button class="btn-submit" onclick="alert('Thank you! We will get back to you soon.')">Send Message</button>
+    </div>
+  </div>
+</section>
+
+<!-- Footer -->
+<footer>
+  <div class="footer-inner">
+    <div class="footer-top">
+      <div>
+        <div class="footer-brand-name">Medi<span>Flow</span> HMS</div>
+        <p class="footer-brand-desc">An enterprise-grade Hospital Management System connecting patients, doctors, and administrators in one unified platform.</p>
+      </div>
+      <div class="footer-col">
+        <div class="footer-col-title">Portals</div>
+        <a href="login-admin.html">Admin Login</a>
+        <a href="login-doctor.html">Doctor Login</a>
+        <a href="login-patient.html">Patient Login</a>
+      </div>
+      <div class="footer-col">
+        <div class="footer-col-title">Platform</div>
+        <a href="#features">Features</a>
+        <a href="#portals">Portals</a>
+        <a href="#about">About</a>
+      </div>
+      <div class="footer-col">
+        <div class="footer-col-title">Contact</div>
+        <a href="#">support@mediflow.com</a>
+        <a href="#">+91 98000 00000</a>
+        <a href="#">Varanasi, UP, India</a>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <span>© 2026 MediFlow HMS. Built by Shreya Singh.</span>
+      <span>Hospital Management System — Frontend Project</span>
+    </div>
+  </div>
+</footer>
+
+<script src="js/auth.js"></script>
+<script>
+  // Close modal on outside click
+  document.getElementById('portalModal').addEventListener('click', function(e) {
+    if (e.target === this) this.classList.remove('open');
+  });
+</script>
+</body>
+</html>
