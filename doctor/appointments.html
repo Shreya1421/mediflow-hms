@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>My Appointments — MediFlow Doctor</title>
+  <link rel="stylesheet" href="../css/style.css">
+  <link rel="stylesheet" href="../css/doctor.css">
+</head>
+<body>
+<nav class="doctor-topnav">
+  <a href="../index.html" class="doctor-topnav-logo"><div class="doctor-topnav-logo-icon">🏥</div>Medi<span>Flow</span></a>
+  <span class="doctor-topnav-badge">🩺 Doctor Portal</span>
+  <div class="doctor-topnav-spacer"></div>
+  <div class="doctor-topnav-user">
+    <div class="doctor-topnav-avatar" id="doctorInitial">D</div>
+    <span id="doctorName">Doctor</span>
+    <a href="#" class="doctor-topnav-logout" onclick="doctorLogout()">Logout</a>
+  </div>
+</nav>
+<aside class="doctor-sidebar">
+  <div class="doctor-sidebar-label">Overview</div>
+  <a href="dashboard.html"><span class="doctor-sidebar-icon">📊</span> Dashboard</a>
+  <div class="doctor-sidebar-label">My Work</div>
+  <a href="schedule.html"><span class="doctor-sidebar-icon">📅</span> My Schedule</a>
+  <a href="appointments.html" class="active"><span class="doctor-sidebar-icon">🗓️</span> Appointments</a>
+  <a href="patients.html"><span class="doctor-sidebar-icon">🧑‍⚕️</span> My Patients</a>
+  <div class="doctor-sidebar-label">Reports</div>
+  <a href="reports.html"><span class="doctor-sidebar-icon">📋</span> My Reports</a>
+  <div class="doctor-sidebar-label">Account</div>
+  <a href="profile.html"><span class="doctor-sidebar-icon">👤</span> My Profile</a>
+  <a href="../index.html"><span class="doctor-sidebar-icon">🌐</span> View Site</a>
+</aside>
+<main class="doctor-main">
+  <div class="doctor-page-header">
+    <div class="doctor-page-eyebrow">My Work</div>
+    <h1 class="doctor-page-title">My Appointments</h1>
+    <p class="doctor-page-sub">All appointments assigned to you. Mark as completed, cancelled, or needs follow-up.</p>
+  </div>
+  <div class="doctor-alert" id="alertBox"></div>
+
+  <div class="doctor-stats">
+    <div class="doctor-stat-card navy"><div class="doctor-stat-label">Total</div><div class="doctor-stat-value" id="cTotal">0</div></div>
+    <div class="doctor-stat-card teal"><div class="doctor-stat-label">Confirmed</div><div class="doctor-stat-value" id="cConfirmed">0</div></div>
+    <div class="doctor-stat-card amber"><div class="doctor-stat-label">Pending</div><div class="doctor-stat-value" id="cPending">0</div></div>
+    <div class="doctor-stat-card green"><div class="doctor-stat-label">Completed</div><div class="doctor-stat-value" id="cCompleted">0</div></div>
+  </div>
+
+  <div class="doctor-card">
+    <div class="doctor-card-header">
+      <span class="doctor-card-title">Appointment Records</span>
+      <div style="display:flex;gap:10px;align-items:center;">
+        <select id="filterStatus" onchange="renderTable()" style="padding:7px 12px;border:1.5px solid var(--border);border-radius:8px;font-size:13px;background:var(--bg);outline:none;">
+          <option value="">All Status</option>
+          <option>Confirmed</option><option>Pending</option><option>Completed</option><option>Cancelled</option>
+        </select>
+        <div class="doctor-search"><span>🔍</span><input type="text" id="searchInput" placeholder="Search patient..." oninput="renderTable()"></div>
+      </div>
+    </div>
+    <div id="apptTable"></div>
+  </div>
+
+  <!-- Notes Modal -->
+  <div id="notesModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.4);z-index:500;align-items:center;justify-content:center;">
+    <div style="background:white;border-radius:16px;padding:32px;width:480px;max-width:95vw;box-shadow:0 20px 60px rgba(0,0,0,0.2);">
+      <h3 style="font-family:var(--font-head);color:var(--navy);margin-bottom:6px;">Add Visit Notes</h3>
+      <p style="font-size:13px;color:var(--muted);margin-bottom:18px;">Write diagnosis, prescription, and follow-up notes for this visit.</p>
+      <input type="hidden" id="noteAptId">
+      <div style="margin-bottom:14px;">
+        <label style="font-size:12px;font-weight:600;display:block;margin-bottom:5px;">Diagnosis / Notes</label>
+        <textarea id="noteText" rows="5" style="width:100%;padding:10px 13px;border:1.5px solid var(--border);border-radius:8px;font-family:var(--font-body);font-size:13.5px;outline:none;resize:vertical;" placeholder="Enter diagnosis, prescription, follow-up date..."></textarea>
+      </div>
+      <div style="display:flex;gap:10px;">
+        <button class="doctor-btn doctor-btn-primary" onclick="saveNotes()">Save Notes</button>
+        <button class="doctor-btn doctor-btn-outline" onclick="closeNotes()">Cancel</button>
+      </div>
+    </div>
+  </div>
+</main>
+<script src="../js/auth.js"></script>
+<script src="../js/doctor.js"></script>
+<script>
+  requireDoctor();
+  buildDocNav();
+  const s = getSession();
+
+  function updateStatus(id, status) {
+    const apts=DB.get('mf_appointments');
+    const a=apts.find(x=>x.id===id);
+    if(a){a.status=status;DB.set('mf_appointments',apts);}
+    showDoctorAlert('alertBox',`Appointment marked as ${status}.`);
+    renderTable();
+  }
+
+  function openNotes(id) {
+    const a=DB.get('mf_appointments').find(x=>x.id===id);
+    document.getElementById('noteAptId').value=id;
+    document.getElementById('noteText').value=a?.notes||'';
+    document.getElementById('notesModal').style.display='flex';
+  }
+  function closeNotes() { document.getElementById('notesModal').style.display='none'; }
+  function saveNotes() {
+    const id=document.getElementById('noteAptId').value;
+    const notes=document.getElementById('noteText').value.trim();
+    const apts=DB.get('mf_appointments');
+    const a=apts.find(x=>x.id===id);
+    if(a){a.notes=notes;a.status='Completed';DB.set('mf_appointments',apts);}
+    closeNotes();
+    showDoctorAlert('alertBox','Notes saved and appointment marked as completed.');
+    renderTable();
+  }
+
+  function renderTable() {
+    const q=document.getElementById('searchInput').value.toLowerCase();
+    const st=document.getElementById('filterStatus').value;
+    const all=getMyAppointments(s.doctorId);
+    const filtered=all.filter(a=>{
+      const mq=!q||a.patientName.toLowerCase().includes(q);
+      const ms=!st||a.status===st;
+      return mq&&ms;
+    }).sort((a,b)=>a.date>b.date?-1:1);
+
+    document.getElementById('cTotal').textContent=all.length;
+    document.getElementById('cConfirmed').textContent=all.filter(a=>a.status==='Confirmed').length;
+    document.getElementById('cPending').textContent=all.filter(a=>a.status==='Pending').length;
+    document.getElementById('cCompleted').textContent=all.filter(a=>a.status==='Completed').length;
+
+    if(!filtered.length){
+      document.getElementById('apptTable').innerHTML='<div class="doctor-empty"><div class="doctor-empty-icon">🗓️</div><div>No appointments found.</div></div>';
+      return;
+    }
+    document.getElementById('apptTable').innerHTML=`
+      <table class="doctor-table">
+        <thead><tr><th>Date</th><th>Time</th><th>Patient</th><th>Reason</th><th>Notes</th><th>Status</th><th>Actions</th></tr></thead>
+        <tbody>${filtered.map(a=>`<tr>
+          <td><strong>${a.date}</strong></td>
+          <td class="td-muted">${a.time}</td>
+          <td>${a.patientName}</td>
+          <td class="td-muted">${a.reason||'—'}</td>
+          <td class="td-muted" style="max-width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${a.notes||'—'}</td>
+          <td><span class="badge badge-${a.status.toLowerCase()}">${a.status}</span></td>
+          <td style="display:flex;gap:5px;flex-wrap:wrap;">
+            <button class="doctor-btn doctor-btn-outline doctor-btn-sm" onclick="openNotes('${a.id}')">📝 Notes</button>
+            <button class="doctor-btn doctor-btn-outline doctor-btn-sm" onclick="updateStatus('${a.id}','Completed')">✓ Done</button>
+            <button class="doctor-btn doctor-btn-danger doctor-btn-sm" onclick="updateStatus('${a.id}','Cancelled')">✕</button>
+          </td>
+        </tr>`).join('')}</tbody>
+      </table>`;
+  }
+  renderTable();
+</script>
+</body>
+</html>
