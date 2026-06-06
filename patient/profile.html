@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>My Profile — MediFlow</title>
+  <link rel="stylesheet" href="../css/style.css">
+  <link rel="stylesheet" href="../css/patient.css">
+</head>
+<body>
+<nav class="patient-topnav">
+  <a href="../index.html" class="patient-topnav-logo"><div class="patient-topnav-logo-icon">🏥</div>Medi<span>Flow</span></a>
+  <span class="patient-topnav-badge">🧑‍⚕️ Patient Portal</span>
+  <div class="patient-topnav-spacer"></div>
+  <div class="patient-topnav-user">
+    <div class="patient-topnav-avatar" id="patientInitial">P</div>
+    <span id="patientName">Patient</span>
+    <a href="#" class="patient-topnav-logout" onclick="patientLogout()">Logout</a>
+  </div>
+</nav>
+<aside class="patient-sidebar">
+  <div class="patient-sidebar-label">Overview</div>
+  <a href="dashboard.html"><span class="patient-sidebar-icon">🏠</span> Dashboard</a>
+  <div class="patient-sidebar-label">Appointments</div>
+  <a href="book.html"><span class="patient-sidebar-icon">➕</span> Book Appointment</a>
+  <a href="appointments.html"><span class="patient-sidebar-icon">📅</span> My Appointments</a>
+  <div class="patient-sidebar-label">Records</div>
+  <a href="history.html"><span class="patient-sidebar-icon">📋</span> Visit History</a>
+  <a href="doctors.html"><span class="patient-sidebar-icon">🩺</span> Browse Doctors</a>
+  <div class="patient-sidebar-label">Account</div>
+  <a href="profile.html" class="active"><span class="patient-sidebar-icon">👤</span> My Profile</a>
+  <a href="../index.html"><span class="patient-sidebar-icon">🌐</span> View Site</a>
+</aside>
+<main class="patient-main">
+  <div class="patient-page-header">
+    <div class="patient-page-eyebrow">Account</div>
+    <h1 class="patient-page-title">My Profile</h1>
+    <p class="patient-page-sub">Update your personal information, medical details, and password.</p>
+  </div>
+  <div class="patient-alert" id="alertBox"></div>
+
+  <!-- Profile card with avatar -->
+  <div style="display:flex;align-items:center;gap:20px;background:var(--white);border:1px solid var(--border);border-radius:var(--radius-lg);padding:24px 28px;margin-bottom:20px;">
+    <div id="bigAvatar" style="width:72px;height:72px;border-radius:50%;background:var(--green);color:white;display:flex;align-items:center;justify-content:center;font-size:28px;font-family:var(--font-head);font-weight:700;flex-shrink:0;"></div>
+    <div>
+      <div id="profileName" style="font-family:var(--font-head);font-size:22px;font-weight:700;color:var(--navy);margin-bottom:4px;"></div>
+      <div id="profileMeta" style="font-size:13px;color:var(--muted);display:flex;gap:12px;flex-wrap:wrap;"></div>
+    </div>
+    <div style="margin-left:auto;">
+      <div id="profileId" style="font-size:12px;color:var(--muted);text-align:right;">Patient ID</div>
+    </div>
+  </div>
+
+  <div class="patient-grid-2">
+    <!-- Personal info -->
+    <div class="patient-card">
+      <div class="patient-card-header"><span class="patient-card-title">👤 Personal Information</span></div>
+      <div class="patient-form-grid">
+        <div class="patient-form-group"><label>Full Name *</label><input type="text" id="pName"></div>
+        <div class="patient-form-group"><label>Age</label><input type="number" id="pAge"></div>
+        <div class="patient-form-group"><label>Gender</label>
+          <select id="pGender"><option value="">Select</option><option>Male</option><option>Female</option><option>Other</option></select></div>
+        <div class="patient-form-group"><label>Blood Group</label>
+          <select id="pBlood"><option value="">Select</option><option>A+</option><option>A-</option><option>B+</option><option>B-</option><option>AB+</option><option>AB-</option><option>O+</option><option>O-</option></select></div>
+        <div class="patient-form-group"><label>Phone</label><input type="tel" id="pPhone"></div>
+        <div class="patient-form-group"><label>Email</label><input type="email" id="pEmail" readonly style="background:var(--bg2);"></div>
+        <div class="patient-form-group patient-form-full"><label>Address</label><input type="text" id="pAddress" placeholder="Your city, state"></div>
+        <div class="patient-form-group patient-form-full"><label>Medical Notes / Conditions</label><textarea id="pNotes" rows="3" placeholder="Existing conditions, allergies..."></textarea></div>
+      </div>
+      <div class="patient-form-actions">
+        <button class="patient-btn patient-btn-primary" onclick="saveProfile()">Save Changes</button>
+      </div>
+    </div>
+
+    <!-- Password + assigned doctor -->
+    <div style="display:flex;flex-direction:column;gap:20px;">
+      <div class="patient-card">
+        <div class="patient-card-header"><span class="patient-card-title">🔑 Change Password</span></div>
+        <div class="patient-form-grid">
+          <div class="patient-form-group patient-form-full"><label>Current Password</label><input type="password" id="oldPass" placeholder="Current password"></div>
+          <div class="patient-form-group patient-form-full"><label>New Password</label><input type="password" id="newPass" placeholder="Min 6 characters"></div>
+        </div>
+        <div class="patient-form-actions">
+          <button class="patient-btn patient-btn-primary" onclick="changePass()">Update Password</button>
+        </div>
+      </div>
+
+      <div class="patient-card">
+        <div class="patient-card-header"><span class="patient-card-title">🩺 My Assigned Doctor</span></div>
+        <div id="assignedDoc" style="padding:20px 24px;"></div>
+      </div>
+
+      <div class="patient-card" style="border:1.5px solid #FECACA;">
+        <div class="patient-card-header" style="background:#FEF2F2;">
+          <span class="patient-card-title" style="color:#DC2626;">⚠️ Account</span>
+        </div>
+        <div style="padding:16px 24px;">
+          <p style="font-size:13px;color:var(--muted);margin-bottom:12px;">Your login email and Patient ID cannot be changed. Contact admin for help.</p>
+          <div id="loginInfo" style="font-size:13px;color:var(--text);background:var(--bg);border-radius:8px;padding:12px 14px;line-height:2;"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</main>
+
+<script src="../js/auth.js"></script>
+<script src="../js/patient.js"></script>
+<script>
+  requirePatient();
+  buildPatientNav();
+
+  function loadProfile() {
+    const me = getMe();
+    if (!me) return;
+    // Avatar
+    const initials = me.name.split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase();
+    document.getElementById('bigAvatar').textContent = initials;
+    document.getElementById('profileName').textContent = me.name;
+    document.getElementById('profileId').innerHTML = `Patient ID: <strong style="color:var(--navy);">${me.id}</strong>`;
+    document.getElementById('profileMeta').innerHTML = [
+      me.age?`Age: ${me.age}`:'',
+      me.gender||'',
+      me.blood?`Blood: ${me.blood}`:'',
+      me.phone||''
+    ].filter(Boolean).map(x=>`<span>${x}</span>`).join('');
+
+    // Form fields
+    document.getElementById('pName').value    = me.name||'';
+    document.getElementById('pAge').value     = me.age||'';
+    document.getElementById('pGender').value  = me.gender||'';
+    document.getElementById('pBlood').value   = me.blood||'';
+    document.getElementById('pPhone').value   = me.phone||'';
+    document.getElementById('pEmail').value   = me.email||'';
+    document.getElementById('pAddress').value = me.address||'';
+    document.getElementById('pNotes').value   = me.notes||'';
+    document.getElementById('loginInfo').innerHTML = `Email: <strong>${me.email}</strong><br>Patient ID: <strong>${me.id}</strong>`;
+
+    // Assigned doctor
+    const doc = DB.get('mf_doctors').find(d=>d.id===me.doctor);
+    document.getElementById('assignedDoc').innerHTML = doc ? `
+      <div style="display:flex;align-items:center;gap:14px;">
+        <div style="width:44px;height:44px;border-radius:50%;background:var(--navy);color:white;display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:700;font-family:var(--font-head);">${doc.name.charAt(0)}</div>
+        <div>
+          <div style="font-size:14px;font-weight:700;color:var(--navy);">${doc.name}</div>
+          <div style="font-size:12px;color:var(--teal);">${doc.dept}</div>
+          <div style="font-size:12px;color:var(--muted);">📞 ${doc.phone}</div>
+        </div>
+      </div>` : '<p style="font-size:13px;color:var(--muted);">No doctor assigned yet. Contact admin.</p>';
+  }
+
+  function saveProfile() {
+    const pats = DB.get('mf_patients');
+    const s    = getSession();
+    const idx  = pats.findIndex(p=>p.id===s.patientId);
+    if (idx<0) return;
+    pats[idx].name    = document.getElementById('pName').value.trim();
+    pats[idx].age     = document.getElementById('pAge').value;
+    pats[idx].gender  = document.getElementById('pGender').value;
+    pats[idx].blood   = document.getElementById('pBlood').value;
+    pats[idx].phone   = document.getElementById('pPhone').value.trim();
+    pats[idx].address = document.getElementById('pAddress').value.trim();
+    pats[idx].notes   = document.getElementById('pNotes').value.trim();
+    DB.set('mf_patients', pats);
+    showPatientAlert('alertBox','Profile updated successfully.');
+    loadProfile();
+  }
+
+  function changePass() {
+    const oldP = document.getElementById('oldPass').value;
+    const newP = document.getElementById('newPass').value;
+    const pats = DB.get('mf_patients');
+    const s    = getSession();
+    const pat  = pats.find(p=>p.id===s.patientId);
+    if (!pat||pat.password!==oldP) { showPatientAlert('alertBox','Current password is incorrect.','error'); return; }
+    if (newP.length<6) { showPatientAlert('alertBox','New password must be at least 6 characters.','error'); return; }
+    pat.password = newP;
+    DB.set('mf_patients', pats);
+    showPatientAlert('alertBox','Password changed successfully.');
+    document.getElementById('oldPass').value='';
+    document.getElementById('newPass').value='';
+  }
+
+  loadProfile();
+</script>
+</body>
+</html>
