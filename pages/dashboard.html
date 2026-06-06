@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dashboard – MediFlow</title>
+  <link rel="stylesheet" href="../css/style.css">
+</head>
+<body>
+
+  <nav class="navbar">
+    <a href="../index.html" class="nav-logo">
+      <div class="nav-logo-icon">🏥</div>
+      MediFlow
+    </a>
+    <div class="nav-spacer"></div>
+    <span class="nav-badge">Admin Portal</span>
+  </nav>
+
+  <div class="page-wrapper">
+    <aside class="sidebar">
+      <div class="sidebar-label">Modules</div>
+      <a href="dashboard.html" class="active"><span class="sidebar-icon">📊</span> Dashboard</a>
+      <a href="patients.html"><span class="sidebar-icon">🧑‍⚕️</span> Patients</a>
+      <a href="appointments.html"><span class="sidebar-icon">📅</span> Appointments</a>
+      <div class="sidebar-label">General</div>
+      <a href="../index.html"><span class="sidebar-icon">🏠</span> Home</a>
+    </aside>
+
+    <main class="main-content">
+      <div class="page-header">
+        <div class="page-eyebrow">Overview</div>
+        <h1 class="page-title">Dashboard</h1>
+        <p class="page-subtitle">Live hospital statistics and operational overview.</p>
+      </div>
+
+      <div class="stats-grid" id="statsGrid">
+        <div class="stat-card">
+          <div class="stat-label">Total Patients</div>
+          <div class="stat-value" id="statPatients">0</div>
+          <div class="stat-tag">↑ Registered</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Appointments</div>
+          <div class="stat-value" id="statAppts">0</div>
+          <div class="stat-tag">↑ Scheduled</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Confirmed</div>
+          <div class="stat-value" id="statConfirmed">0</div>
+          <div class="stat-tag" style="color:#FCD34D;">Upcoming</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Completed</div>
+          <div class="stat-value" id="statCompleted">0</div>
+          <div class="stat-tag">Done</div>
+        </div>
+      </div>
+
+      <div class="table-card">
+        <div class="table-header">
+          <span class="table-title">Recent Patients</span>
+          <a href="patients.html" class="btn btn-ghost" style="padding:7px 14px;font-size:12px;">View all →</a>
+        </div>
+        <div id="recentPatients">
+          <div class="empty-state">
+            <div class="empty-icon">🧑‍⚕️</div>
+            <div class="empty-text">No patients registered yet. <a href="patients.html" style="color:var(--accent2);">Register one →</a></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="table-card" style="margin-top:20px;">
+        <div class="table-header">
+          <span class="table-title">Recent Appointments</span>
+          <a href="appointments.html" class="btn btn-ghost" style="padding:7px 14px;font-size:12px;">View all →</a>
+        </div>
+        <div id="recentAppointments">
+          <div class="empty-state">
+            <div class="empty-icon">📅</div>
+            <div class="empty-text">No appointments yet. <a href="appointments.html" style="color:var(--accent2);">Schedule one →</a></div>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <script src="../js/main.js"></script>
+  <script>
+    function loadDashboard() {
+      const patients = JSON.parse(localStorage.getItem('mf_patients') || '[]');
+      const appts    = JSON.parse(localStorage.getItem('mf_appointments') || '[]');
+      document.getElementById('statPatients').textContent  = patients.length;
+      document.getElementById('statAppts').textContent     = appts.length;
+      document.getElementById('statConfirmed').textContent = appts.filter(a => a.status === 'Confirmed').length;
+      document.getElementById('statCompleted').textContent = appts.filter(a => a.status === 'Completed').length;
+
+      // Recent patients table
+      if (patients.length > 0) {
+        const recent = patients.slice(-5).reverse();
+        document.getElementById('recentPatients').innerHTML = `
+          <table>
+            <thead><tr><th>Name</th><th>Age</th><th>Gender</th><th>Blood Group</th><th>Phone</th></tr></thead>
+            <tbody>${recent.map(p => `
+              <tr>
+                <td>${p.name}</td>
+                <td class="td-muted">${p.age}</td>
+                <td class="td-muted">${p.gender}</td>
+                <td><span class="badge badge-purple">${p.blood}</span></td>
+                <td class="td-muted">${p.phone}</td>
+              </tr>`).join('')}
+            </tbody>
+          </table>`;
+      }
+
+      // Recent appointments table
+      if (appts.length > 0) {
+        const recent = appts.slice(-5).reverse();
+        document.getElementById('recentAppointments').innerHTML = `
+          <table>
+            <thead><tr><th>Patient</th><th>Doctor</th><th>Date</th><th>Time</th><th>Status</th></tr></thead>
+            <tbody>${recent.map(a => {
+              const cls = a.status === 'Confirmed' ? 'badge-success' : a.status === 'Completed' ? 'badge-purple' : 'badge-warning';
+              return `<tr>
+                <td>${a.patient}</td>
+                <td class="td-muted">${a.doctor}</td>
+                <td class="td-muted">${a.date}</td>
+                <td class="td-muted">${a.time}</td>
+                <td><span class="badge ${cls}">${a.status}</span></td>
+              </tr>`;
+            }).join('')}
+            </tbody>
+          </table>`;
+      }
+    }
+    loadDashboard();
+  </script>
+</body>
+</html>
