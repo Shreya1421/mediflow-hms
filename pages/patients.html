@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Patients – MediFlow</title>
+  <link rel="stylesheet" href="../css/style.css">
+</head>
+<body>
+
+  <nav class="navbar">
+    <a href="../index.html" class="nav-logo">
+      <div class="nav-logo-icon">🏥</div>
+      MediFlow
+    </a>
+    <div class="nav-spacer"></div>
+    <span class="nav-badge">Admin Portal</span>
+  </nav>
+
+  <div class="page-wrapper">
+    <aside class="sidebar">
+      <div class="sidebar-label">Modules</div>
+      <a href="dashboard.html"><span class="sidebar-icon">📊</span> Dashboard</a>
+      <a href="patients.html" class="active"><span class="sidebar-icon">🧑‍⚕️</span> Patients</a>
+      <a href="appointments.html"><span class="sidebar-icon">📅</span> Appointments</a>
+      <div class="sidebar-label">General</div>
+      <a href="../index.html"><span class="sidebar-icon">🏠</span> Home</a>
+    </aside>
+
+    <main class="main-content">
+      <div class="page-header">
+        <div class="page-eyebrow">Module</div>
+        <h1 class="page-title">Patient Registration</h1>
+        <p class="page-subtitle">Register new patients and manage existing records.</p>
+      </div>
+
+      <div class="alert alert-success" id="successAlert">✓ Patient registered successfully!</div>
+
+      <div class="form-card">
+        <div class="form-section-title">Personal Information</div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Full Name *</label>
+            <input type="text" id="pName" placeholder="e.g. Priya Sharma">
+          </div>
+          <div class="form-group">
+            <label>Age *</label>
+            <input type="number" id="pAge" placeholder="e.g. 28" min="0" max="120">
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Gender *</label>
+            <select id="pGender">
+              <option value="">Select gender</option>
+              <option>Male</option>
+              <option>Female</option>
+              <option>Other</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Blood Group *</label>
+            <select id="pBlood">
+              <option value="">Select blood group</option>
+              <option>A+</option><option>A-</option>
+              <option>B+</option><option>B-</option>
+              <option>AB+</option><option>AB-</option>
+              <option>O+</option><option>O-</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-section-title">Contact Details</div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Phone Number *</label>
+            <input type="tel" id="pPhone" placeholder="e.g. 9876543210">
+          </div>
+          <div class="form-group">
+            <label>Email Address</label>
+            <input type="email" id="pEmail" placeholder="e.g. priya@email.com">
+          </div>
+        </div>
+        <div class="form-row full">
+          <div class="form-group">
+            <label>Address</label>
+            <input type="text" id="pAddress" placeholder="e.g. 12 MG Road, Varanasi">
+          </div>
+        </div>
+
+        <div class="form-section-title">Medical Information</div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Department</label>
+            <select id="pDept">
+              <option value="">Select department</option>
+              <option>General</option>
+              <option>Cardiology</option>
+              <option>Neurology</option>
+              <option>Orthopaedics</option>
+              <option>Paediatrics</option>
+              <option>Gynaecology</option>
+              <option>Dermatology</option>
+              <option>ENT</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Admission Date</label>
+            <input type="date" id="pDate">
+          </div>
+        </div>
+        <div class="form-row full">
+          <div class="form-group">
+            <label>Medical Notes</label>
+            <textarea id="pNotes" rows="3" placeholder="Any existing conditions, allergies, or notes..."></textarea>
+          </div>
+        </div>
+
+        <div class="divider"></div>
+        <div style="display:flex;gap:12px;">
+          <button class="btn btn-primary" onclick="registerPatient()">Register Patient</button>
+          <button class="btn btn-ghost" onclick="clearForm()">Clear Form</button>
+        </div>
+      </div>
+
+      <div class="table-card">
+        <div class="table-header">
+          <span class="table-title">All Patients</span>
+          <span id="patientCount" style="font-size:12px;color:var(--muted);">0 records</span>
+        </div>
+        <div id="patientTable">
+          <div class="empty-state">
+            <div class="empty-icon">🧑‍⚕️</div>
+            <div class="empty-text">No patients registered yet.</div>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <script src="../js/main.js"></script>
+  <script>
+    function registerPatient() {
+      const name  = document.getElementById('pName').value.trim();
+      const age   = document.getElementById('pAge').value.trim();
+      const gender= document.getElementById('pGender').value;
+      const blood = document.getElementById('pBlood').value;
+      const phone = document.getElementById('pPhone').value.trim();
+      const email = document.getElementById('pEmail').value.trim();
+      const addr  = document.getElementById('pAddress').value.trim();
+      const dept  = document.getElementById('pDept').value;
+      const date  = document.getElementById('pDate').value;
+      const notes = document.getElementById('pNotes').value.trim();
+
+      if (!name || !age || !gender || !blood || !phone) {
+        alert('Please fill all required fields (marked with *).');
+        return;
+      }
+
+      const patients = JSON.parse(localStorage.getItem('mf_patients') || '[]');
+      const id = 'P' + String(patients.length + 1).padStart(3, '0');
+      patients.push({ id, name, age, gender, blood, phone, email, addr, dept, date, notes });
+      localStorage.setItem('mf_patients', JSON.stringify(patients));
+
+      const alert = document.getElementById('successAlert');
+      alert.classList.add('show');
+      setTimeout(() => alert.classList.remove('show'), 3000);
+
+      clearForm();
+      renderTable();
+    }
+
+    function clearForm() {
+      ['pName','pAge','pPhone','pEmail','pAddress','pNotes'].forEach(id => document.getElementById(id).value = '');
+      ['pGender','pBlood','pDept'].forEach(id => document.getElementById(id).value = '');
+      document.getElementById('pDate').value = '';
+    }
+
+    function deletePatient(id) {
+      if (!confirm('Delete this patient record?')) return;
+      let patients = JSON.parse(localStorage.getItem('mf_patients') || '[]');
+      patients = patients.filter(p => p.id !== id);
+      localStorage.setItem('mf_patients', JSON.stringify(patients));
+      renderTable();
+    }
+
+    function renderTable() {
+      const patients = JSON.parse(localStorage.getItem('mf_patients') || '[]');
+      document.getElementById('patientCount').textContent = patients.length + ' records';
+      if (patients.length === 0) {
+        document.getElementById('patientTable').innerHTML = `
+          <div class="empty-state"><div class="empty-icon">🧑‍⚕️</div>
+          <div class="empty-text">No patients registered yet.</div></div>`;
+        return;
+      }
+      document.getElementById('patientTable').innerHTML = `
+        <table>
+          <thead><tr><th>ID</th><th>Name</th><th>Age</th><th>Gender</th><th>Blood</th><th>Phone</th><th>Dept</th><th>Action</th></tr></thead>
+          <tbody>${patients.map(p => `
+            <tr>
+              <td class="td-muted">${p.id}</td>
+              <td>${p.name}</td>
+              <td class="td-muted">${p.age}</td>
+              <td class="td-muted">${p.gender}</td>
+              <td><span class="badge badge-purple">${p.blood}</span></td>
+              <td class="td-muted">${p.phone}</td>
+              <td class="td-muted">${p.dept || '—'}</td>
+              <td><button class="btn btn-danger" style="padding:4px 10px;font-size:11px;" onclick="deletePatient('${p.id}')">Delete</button></td>
+            </tr>`).join('')}
+          </tbody>
+        </table>`;
+    }
+
+    renderTable();
+  </script>
+</body>
+</html>
