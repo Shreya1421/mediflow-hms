@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Settings — MediFlow Admin</title>
+  <link rel="stylesheet" href="../css/style.css">
+  <link rel="stylesheet" href="../css/admin.css">
+</head>
+<body>
+<nav class="admin-topnav">
+  <a href="../index.html" class="admin-topnav-logo"><div class="admin-topnav-logo-icon">🏥</div>Medi<span>Flow</span></a>
+  <span class="admin-topnav-badge">🛡️ Admin Portal</span>
+  <div class="admin-topnav-spacer"></div>
+  <div class="admin-topnav-user">
+    <div class="admin-topnav-avatar">A</div>
+    <a href="#" class="admin-topnav-logout" onclick="adminLogout()">Logout</a>
+  </div>
+</nav>
+<aside class="admin-sidebar">
+  <div class="admin-sidebar-label">Overview</div>
+  <a href="dashboard.html"><span class="admin-sidebar-icon">📊</span> Dashboard</a>
+  <div class="admin-sidebar-label">Management</div>
+  <a href="doctors.html"><span class="admin-sidebar-icon">🩺</span> Doctors</a>
+  <a href="patients.html"><span class="admin-sidebar-icon">🧑‍⚕️</span> Patients</a>
+  <a href="appointments.html"><span class="admin-sidebar-icon">📅</span> Appointments</a>
+  <div class="admin-sidebar-label">Reports</div>
+  <a href="reports.html"><span class="admin-sidebar-icon">📋</span> Weekly Reports</a>
+  <div class="admin-sidebar-label">Settings</div>
+  <a href="settings.html" class="active"><span class="admin-sidebar-icon">⚙️</span> Settings</a>
+  <a href="../index.html"><span class="admin-sidebar-icon">🌐</span> View Site</a>
+</aside>
+<main class="admin-main">
+  <div class="admin-page-header">
+    <div class="admin-page-eyebrow">Configuration</div>
+    <h1 class="admin-page-title">Settings</h1>
+    <p class="admin-page-sub">Manage hospital information and admin account.</p>
+  </div>
+  <div class="admin-alert" id="alertBox"></div>
+  <div class="admin-grid-2">
+    <div class="admin-card">
+      <div class="admin-card-header"><span class="admin-card-title">🏥 Hospital Information</span></div>
+      <div class="admin-form-grid">
+        <div class="admin-form-group"><label>Hospital Name</label><input type="text" id="hName" placeholder="MediFlow Hospital"></div>
+        <div class="admin-form-group"><label>City</label><input type="text" id="hCity" placeholder="Varanasi"></div>
+        <div class="admin-form-group"><label>Phone</label><input type="tel" id="hPhone" placeholder="+91 98000 00000"></div>
+        <div class="admin-form-group"><label>Email</label><input type="email" id="hEmail" placeholder="info@hospital.com"></div>
+        <div class="admin-form-group admin-form-full"><label>Address</label><input type="text" id="hAddress" placeholder="Full address"></div>
+      </div>
+      <div class="admin-form-actions">
+        <button class="admin-btn admin-btn-primary" onclick="saveHospital()">Save Hospital Info</button>
+      </div>
+    </div>
+    <div class="admin-card">
+      <div class="admin-card-header"><span class="admin-card-title">🔑 Admin Account</span></div>
+      <div class="admin-form-grid">
+        <div class="admin-form-group"><label>Admin Name</label><input type="text" id="aName" value="Admin"></div>
+        <div class="admin-form-group"><label>Email</label><input type="email" id="aEmail" value="admin@mediflow.com"></div>
+        <div class="admin-form-group admin-form-full"><label>New Password (leave blank to keep)</label><input type="password" id="aPass" placeholder="New password..."></div>
+      </div>
+      <div class="admin-form-actions">
+        <button class="admin-btn admin-btn-primary" onclick="saveAdmin()">Update Account</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="admin-card" style="margin-top:20px;border:1.5px solid #FECACA;">
+    <div class="admin-card-header" style="background:#FEF2F2;">
+      <span class="admin-card-title" style="color:#DC2626;">⚠️ Danger Zone</span>
+    </div>
+    <div style="padding:20px 24px;display:flex;gap:12px;align-items:center;">
+      <div style="flex:1;">
+        <div style="font-size:14px;font-weight:600;color:var(--text);margin-bottom:4px;">Reset All Demo Data</div>
+        <div style="font-size:13px;color:var(--muted);">This will clear all patients, doctors, and appointments and reload the original demo data.</div>
+      </div>
+      <button class="admin-btn admin-btn-danger" onclick="resetData()">Reset Data</button>
+    </div>
+  </div>
+</main>
+<script src="../js/auth.js"></script>
+<script src="../js/admin.js"></script>
+<script>
+  requireAdmin();
+  function saveHospital() { showAlert('alertBox','Hospital information saved successfully.'); }
+  function saveAdmin()    { showAlert('alertBox','Admin account updated successfully.'); }
+  function resetData() {
+    if (!confirm('This will delete all data and reload demo data. Are you sure?')) return;
+    ['mf_doctors','mf_patients','mf_appointments','mf_seeded'].forEach(k => localStorage.removeItem(k));
+    seedData();
+    showAlert('alertBox','Demo data restored successfully.');
+  }
+</script>
+</body>
+</html>
