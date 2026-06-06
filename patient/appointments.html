@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>My Appointments — MediFlow</title>
+  <link rel="stylesheet" href="../css/style.css">
+  <link rel="stylesheet" href="../css/patient.css">
+</head>
+<body>
+<nav class="patient-topnav">
+  <a href="../index.html" class="patient-topnav-logo"><div class="patient-topnav-logo-icon">🏥</div>Medi<span>Flow</span></a>
+  <span class="patient-topnav-badge">🧑‍⚕️ Patient Portal</span>
+  <div class="patient-topnav-spacer"></div>
+  <div class="patient-topnav-user">
+    <div class="patient-topnav-avatar" id="patientInitial">P</div>
+    <span id="patientName">Patient</span>
+    <a href="#" class="patient-topnav-logout" onclick="patientLogout()">Logout</a>
+  </div>
+</nav>
+<aside class="patient-sidebar">
+  <div class="patient-sidebar-label">Overview</div>
+  <a href="dashboard.html"><span class="patient-sidebar-icon">🏠</span> Dashboard</a>
+  <div class="patient-sidebar-label">Appointments</div>
+  <a href="book.html"><span class="patient-sidebar-icon">➕</span> Book Appointment</a>
+  <a href="appointments.html" class="active"><span class="patient-sidebar-icon">📅</span> My Appointments</a>
+  <div class="patient-sidebar-label">Records</div>
+  <a href="history.html"><span class="patient-sidebar-icon">📋</span> Visit History</a>
+  <a href="doctors.html"><span class="patient-sidebar-icon">🩺</span> Browse Doctors</a>
+  <div class="patient-sidebar-label">Account</div>
+  <a href="profile.html"><span class="patient-sidebar-icon">👤</span> My Profile</a>
+  <a href="../index.html"><span class="patient-sidebar-icon">🌐</span> View Site</a>
+</aside>
+<main class="patient-main">
+  <div class="patient-page-header">
+    <div class="patient-page-eyebrow">Appointments</div>
+    <h1 class="patient-page-title">My Appointments</h1>
+    <p class="patient-page-sub">View all your upcoming and past appointments. Cancel if needed.</p>
+  </div>
+  <div class="patient-alert" id="alertBox"></div>
+
+  <div class="patient-stats">
+    <div class="patient-stat-card green"><div class="patient-stat-label">Total</div><div class="patient-stat-value" id="cTotal">0</div></div>
+    <div class="patient-stat-card teal"><div class="patient-stat-label">Upcoming</div><div class="patient-stat-value" id="cUpcoming">0</div></div>
+    <div class="patient-stat-card navy"><div class="patient-stat-label">Completed</div><div class="patient-stat-value" id="cDone">0</div></div>
+    <div class="patient-stat-card amber"><div class="patient-stat-label">Cancelled</div><div class="patient-stat-value" id="cCancelled">0</div></div>
+  </div>
+
+  <div class="patient-card">
+    <div class="patient-card-header">
+      <span class="patient-card-title">All Appointments</span>
+      <div style="display:flex;gap:10px;align-items:center;">
+        <select id="filterStatus" onchange="render()" style="padding:7px 12px;border:1.5px solid var(--border);border-radius:8px;font-size:13px;background:var(--bg);outline:none;">
+          <option value="">All Status</option>
+          <option>Confirmed</option><option>Pending</option>
+          <option>Completed</option><option>Cancelled</option>
+        </select>
+        <a href="book.html" class="patient-btn patient-btn-primary patient-btn-sm">+ Book New</a>
+      </div>
+    </div>
+    <div id="apptList"></div>
+  </div>
+
+  <!-- Cancel modal -->
+  <div id="cancelModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.4);z-index:500;align-items:center;justify-content:center;">
+    <div style="background:white;border-radius:16px;padding:32px;width:420px;max-width:95vw;">
+      <h3 style="font-family:var(--font-head);color:var(--navy);margin-bottom:8px;">Cancel Appointment</h3>
+      <p style="font-size:13px;color:var(--muted);margin-bottom:18px;">Please provide a reason for cancellation.</p>
+      <input type="hidden" id="cancelId">
+      <div style="margin-bottom:16px;">
+        <label style="font-size:12px;font-weight:600;display:block;margin-bottom:5px;">Reason</label>
+        <select id="cancelReason" style="width:100%;padding:9px 13px;border:1.5px solid var(--border);border-radius:8px;font-size:13.5px;outline:none;">
+          <option>Schedule conflict</option>
+          <option>Feeling better</option>
+          <option>Emergency</option>
+          <option>Doctor unavailable</option>
+          <option>Other</option>
+        </select>
+      </div>
+      <div style="display:flex;gap:10px;">
+        <button class="patient-btn patient-btn-danger" onclick="confirmCancel()">Cancel Appointment</button>
+        <button class="patient-btn patient-btn-outline" onclick="document.getElementById('cancelModal').style.display='none'">Keep It</button>
+      </div>
+    </div>
+  </div>
+</main>
+
+<script src="../js/auth.js"></script>
+<script src="../js/patient.js"></script>
+<script>
+  requirePatient();
+  buildPatientNav();
+  const today = new Date().toISOString().slice(0,10);
+
+  function openCancel(id) {
+    document.getElementById('cancelId').value = id;
+    document.getElementById('cancelModal').style.display = 'flex';
+  }
+  function confirmCancel() {
+    const id  = document.getElementById('cancelId').value;
+    const apts = DB.get('mf_appointments');
+    const a = apts.find(x=>x.id===id);
+    if (a) { a.status='Cancelled'; DB.set('mf_appointments',apts); }
+    document.getElementById('cancelModal').style.display='none';
+    showPatientAlert('alertBox','Appointment cancelled successfully.');
+    render();
+  }
+
+  function render() {
+    const st  = document.getElementById('filterStatus').value;
+    const all = getMyApts();
+    const filtered = all.filter(a=>!st||a.status===st).sort((a,b)=>a.date>b.date?-1:1);
+
+    document.getElementById('cTotal').textContent    = all.length;
+    document.getElementById('cUpcoming').textContent = all.filter(a=>a.date>=today&&(a.status==='Confirmed'||a.status==='Pending')).length;
+    document.getElementById('cDone').textContent     = all.filter(a=>a.status==='Completed').length;
+    document.getElementById('cCancelled').textContent= all.filter(a=>a.status==='Cancelled').length;
+
+    if (!filtered.length) {
+      document.getElementById('apptList').innerHTML='<div class="patient-empty"><div class="patient-empty-icon">📅</div><div>No appointments found.</div></div>';
+      return;
+    }
+
+    document.getElementById('apptList').innerHTML=`
+      <table class="patient-table">
+        <thead><tr><th>Booking ID</th><th>Doctor</th><th>Dept</th><th>Date</th><th>Time</th><th>Reason</th><th>Status</th><th>Action</th></tr></thead>
+        <tbody>${filtered.map(a=>{
+          const canCancel = (a.status==='Confirmed'||a.status==='Pending') && a.date>=today;
+          return `<tr>
+            <td class="td-muted">${a.id}</td>
+            <td><strong>${a.doctorName}</strong></td>
+            <td class="td-muted">${a.dept}</td>
+            <td><strong>${a.date}</strong></td>
+            <td class="td-muted">${a.time}</td>
+            <td class="td-muted">${a.reason||'—'}</td>
+            <td><span class="badge badge-${a.status.toLowerCase()}">${a.status}</span></td>
+            <td>${canCancel?`<button class="patient-btn patient-btn-danger patient-btn-sm" onclick="openCancel('${a.id}')">Cancel</button>`:'<span style="font-size:12px;color:var(--muted);">—</span>'}</td>
+          </tr>`;
+        }).join('')}</tbody>
+      </table>`;
+  }
+  render();
+</script>
+</body>
+</html>
