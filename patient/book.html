@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Book Appointment — MediFlow</title>
+  <link rel="stylesheet" href="../css/style.css">
+  <link rel="stylesheet" href="../css/patient.css">
+</head>
+<body>
+<nav class="patient-topnav">
+  <a href="../index.html" class="patient-topnav-logo"><div class="patient-topnav-logo-icon">🏥</div>Medi<span>Flow</span></a>
+  <span class="patient-topnav-badge">🧑‍⚕️ Patient Portal</span>
+  <div class="patient-topnav-spacer"></div>
+  <div class="patient-topnav-user">
+    <div class="patient-topnav-avatar" id="patientInitial">P</div>
+    <span id="patientName">Patient</span>
+    <a href="#" class="patient-topnav-logout" onclick="patientLogout()">Logout</a>
+  </div>
+</nav>
+<aside class="patient-sidebar">
+  <div class="patient-sidebar-label">Overview</div>
+  <a href="dashboard.html"><span class="patient-sidebar-icon">🏠</span> Dashboard</a>
+  <div class="patient-sidebar-label">Appointments</div>
+  <a href="book.html" class="active"><span class="patient-sidebar-icon">➕</span> Book Appointment</a>
+  <a href="appointments.html"><span class="patient-sidebar-icon">📅</span> My Appointments</a>
+  <div class="patient-sidebar-label">Records</div>
+  <a href="history.html"><span class="patient-sidebar-icon">📋</span> Visit History</a>
+  <a href="doctors.html"><span class="patient-sidebar-icon">🩺</span> Browse Doctors</a>
+  <div class="patient-sidebar-label">Account</div>
+  <a href="profile.html"><span class="patient-sidebar-icon">👤</span> My Profile</a>
+  <a href="../index.html"><span class="patient-sidebar-icon">🌐</span> View Site</a>
+</aside>
+<main class="patient-main">
+  <div class="patient-page-header">
+    <div class="patient-page-eyebrow">Appointments</div>
+    <h1 class="patient-page-title">Book an Appointment</h1>
+    <p class="patient-page-sub">Choose your department, doctor, date and time slot to book.</p>
+  </div>
+  <div class="patient-alert" id="alertBox"></div>
+
+  <!-- Step indicator -->
+  <div style="display:flex;gap:0;margin-bottom:28px;background:var(--white);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;">
+    <div class="step-pill active" id="step1pill" style="flex:1;padding:12px 16px;text-align:center;font-size:13px;font-weight:600;color:var(--green);border-right:1px solid var(--border);background:var(--bg);">1 · Select Department</div>
+    <div class="step-pill" id="step2pill" style="flex:1;padding:12px 16px;text-align:center;font-size:13px;font-weight:500;color:var(--muted);border-right:1px solid var(--border);">2 · Choose Doctor</div>
+    <div class="step-pill" id="step3pill" style="flex:1;padding:12px 16px;text-align:center;font-size:13px;font-weight:500;color:var(--muted);">3 · Pick Date & Time</div>
+  </div>
+
+  <!-- Step 1: Department -->
+  <div id="step1">
+    <div class="patient-card">
+      <div class="patient-card-header"><span class="patient-card-title">🏥 Select Department</span></div>
+      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:14px;padding:24px;" id="deptGrid"></div>
+    </div>
+  </div>
+
+  <!-- Step 2: Doctor -->
+  <div id="step2" style="display:none;">
+    <button class="patient-btn patient-btn-outline patient-btn-sm" onclick="goStep(1)" style="margin-bottom:16px;">← Back</button>
+    <div class="patient-card">
+      <div class="patient-card-header"><span class="patient-card-title">🩺 Choose Doctor</span><span id="selectedDept" style="font-size:12px;color:var(--muted);"></span></div>
+      <div class="doctor-browse-grid" id="doctorGrid"></div>
+    </div>
+  </div>
+
+  <!-- Step 3: Date & Time -->
+  <div id="step3" style="display:none;">
+    <button class="patient-btn patient-btn-outline patient-btn-sm" onclick="goStep(2)" style="margin-bottom:16px;">← Back</button>
+    <div class="patient-card">
+      <div class="patient-card-header">
+        <span class="patient-card-title">📅 Pick Date & Time</span>
+        <span id="selectedDoc" style="font-size:12px;color:var(--muted);"></span>
+      </div>
+      <div class="patient-form-grid">
+        <div class="patient-form-group">
+          <label>Appointment Date *</label>
+          <input type="date" id="aDate">
+        </div>
+        <div class="patient-form-group">
+          <label>Time Slot *</label>
+          <select id="aTime">
+            <option value="">Select time</option>
+            <option>09:00 AM</option><option>09:30 AM</option>
+            <option>10:00 AM</option><option>10:30 AM</option>
+            <option>11:00 AM</option><option>11:30 AM</option>
+            <option>12:00 PM</option><option>02:00 PM</option>
+            <option>02:30 PM</option><option>03:00 PM</option>
+            <option>03:30 PM</option><option>04:00 PM</option>
+            <option>04:30 PM</option><option>05:00 PM</option>
+          </select>
+        </div>
+        <div class="patient-form-group patient-form-full">
+          <label>Reason for Visit</label>
+          <input type="text" id="aReason" placeholder="e.g. Routine check-up, follow-up, pain...">
+        </div>
+        <div class="patient-form-group patient-form-full">
+          <label>Additional Notes (optional)</label>
+          <textarea id="aNotes" rows="3" placeholder="Any symptoms, allergies, or information for the doctor..."></textarea>
+        </div>
+      </div>
+      <div class="patient-form-actions">
+        <button class="patient-btn patient-btn-primary" onclick="confirmBooking()">✅ Confirm Booking</button>
+        <button class="patient-btn patient-btn-outline" onclick="goStep(1)">Start Over</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Success screen -->
+  <div id="stepSuccess" style="display:none;">
+    <div class="patient-card">
+      <div style="text-align:center;padding:60px 40px;">
+        <div style="font-size:56px;margin-bottom:16px;">✅</div>
+        <h2 style="font-family:var(--font-head);font-size:26px;color:var(--navy);margin-bottom:8px;">Appointment Booked!</h2>
+        <p style="font-size:14px;color:var(--muted);margin-bottom:24px;" id="successMsg">Your appointment has been confirmed.</p>
+        <div style="display:flex;gap:12px;justify-content:center;">
+          <a href="appointments.html" class="patient-btn patient-btn-primary">View My Appointments</a>
+          <button class="patient-btn patient-btn-outline" onclick="resetBooking()">Book Another</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</main>
+
+<script src="../js/auth.js"></script>
+<script src="../js/patient.js"></script>
+<script>
+  requirePatient();
+  buildPatientNav();
+  const me = getMe();
+
+  // Set min date to today
+  document.getElementById('aDate').min = new Date().toISOString().slice(0,10);
+
+  let selectedDept = '', selectedDocId = '', selectedDocName = '';
+
+  const DEPTS = ['General','Cardiology','Neurology','Orthopaedics','Gynaecology','Paediatrics','Dermatology','ENT','Radiology','Pathology'];
+  const DEPT_ICONS = {'General':'🏥','Cardiology':'❤️','Neurology':'🧠','Orthopaedics':'🦴','Gynaecology':'👩','Paediatrics':'👶','Dermatology':'🩺','ENT':'👂','Radiology':'🔬','Pathology':'🧪'};
+
+  function goStep(n) {
+    [1,2,3,'Success'].forEach(s => {
+      const el = document.getElementById('step'+(s==='Success'?'Success':s));
+      if (el) el.style.display = 'none';
+    });
+    document.getElementById(n==='Success'?'stepSuccess':'step'+n).style.display = 'block';
+    // Update step pills
+    [1,2,3].forEach(i => {
+      const pill = document.getElementById('step'+i+'pill');
+      if (pill) {
+        pill.style.color = i===n ? 'var(--green)' : 'var(--muted)';
+        pill.style.background = i===n ? 'var(--bg)' : 'white';
+        pill.style.fontWeight = i===n ? '600' : '500';
+      }
+    });
+  }
+
+  // Build dept grid
+  document.getElementById('deptGrid').innerHTML = DEPTS.map(d => `
+    <div onclick="selectDept('${d}')" style="background:var(--bg);border:1.5px solid var(--border);border-radius:var(--radius);padding:20px 14px;text-align:center;cursor:pointer;transition:all 0.15s;" onmouseover="this.style.borderColor='var(--green)'" onmouseout="this.style.borderColor='var(--border)'">
+      <div style="font-size:28px;margin-bottom:8px;">${DEPT_ICONS[d]||'🏥'}</div>
+      <div style="font-size:13px;font-weight:600;color:var(--navy);">${d}</div>
+    </div>`).join('');
+
+  function selectDept(dept) {
+    selectedDept = dept;
+    document.getElementById('selectedDept').textContent = dept;
+    const doctors = DB.get('mf_doctors').filter(d => d.dept === dept);
+    if (!doctors.length) {
+      document.getElementById('doctorGrid').innerHTML = '<div class="patient-empty" style="grid-column:1/-1;"><div class="patient-empty-icon">🩺</div><div>No doctors available in this department yet.</div></div>';
+    } else {
+      document.getElementById('doctorGrid').innerHTML = doctors.map(d => `
+        <div class="doctor-browse-card" onclick="selectDoctor('${d.id}','${d.name}')">
+          <div class="doc-avatar">${d.name.charAt(0)}</div>
+          <div class="doc-name">${d.name}</div>
+          <div class="doc-dept">${d.dept}</div>
+          <div class="doc-info">
+            ${d.qual ? `🎓 ${d.qual}<br>` : ''}
+            ${d.exp  ? `⏱ ${d.exp} years exp.<br>` : ''}
+            🕐 ${d.avail||'Mon–Sat, 9AM–5PM'}
+          </div>
+          <button class="patient-btn patient-btn-primary" style="width:100%;justify-content:center;">Select Doctor →</button>
+        </div>`).join('');
+    }
+    goStep(2);
+  }
+
+  function selectDoctor(id, name) {
+    selectedDocId   = id;
+    selectedDocName = name;
+    document.getElementById('selectedDoc').textContent = name;
+    goStep(3);
+  }
+
+  function confirmBooking() {
+    const date   = document.getElementById('aDate').value;
+    const time   = document.getElementById('aTime').value;
+    const reason = document.getElementById('aReason').value.trim();
+    const notes  = document.getElementById('aNotes').value.trim();
+    if (!date||!time) { showPatientAlert('alertBox','Please select a date and time slot.','error'); return; }
+
+    const doc  = DB.get('mf_doctors').find(d=>d.id===selectedDocId);
+    const apts = DB.get('mf_appointments');
+    const id   = 'APT' + String(apts.length+1).padStart(3,'0');
+    apts.push({
+      id, patientId:me.id, patientName:me.name,
+      doctorId:selectedDocId, doctorName:selectedDocName,
+      dept:selectedDept, date, time, status:'Confirmed', reason, notes
+    });
+    DB.set('mf_appointments', apts);
+    document.getElementById('successMsg').textContent =
+      `${selectedDocName} (${selectedDept}) on ${date} at ${time}. Booking ID: ${id}`;
+    goStep('Success');
+  }
+
+  function resetBooking() {
+    selectedDept=''; selectedDocId=''; selectedDocName='';
+    document.getElementById('aDate').value='';
+    document.getElementById('aTime').value='';
+    document.getElementById('aReason').value='';
+    document.getElementById('aNotes').value='';
+    goStep(1);
+  }
+
+  goStep(1);
+</script>
+</body>
+</html>
