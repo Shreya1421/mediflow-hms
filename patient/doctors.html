@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Browse Doctors — MediFlow</title>
+  <link rel="stylesheet" href="../css/style.css">
+  <link rel="stylesheet" href="../css/patient.css">
+</head>
+<body>
+<nav class="patient-topnav">
+  <a href="../index.html" class="patient-topnav-logo"><div class="patient-topnav-logo-icon">🏥</div>Medi<span>Flow</span></a>
+  <span class="patient-topnav-badge">🧑‍⚕️ Patient Portal</span>
+  <div class="patient-topnav-spacer"></div>
+  <div class="patient-topnav-user">
+    <div class="patient-topnav-avatar" id="patientInitial">P</div>
+    <span id="patientName">Patient</span>
+    <a href="#" class="patient-topnav-logout" onclick="patientLogout()">Logout</a>
+  </div>
+</nav>
+<aside class="patient-sidebar">
+  <div class="patient-sidebar-label">Overview</div>
+  <a href="dashboard.html"><span class="patient-sidebar-icon">🏠</span> Dashboard</a>
+  <div class="patient-sidebar-label">Appointments</div>
+  <a href="book.html"><span class="patient-sidebar-icon">➕</span> Book Appointment</a>
+  <a href="appointments.html"><span class="patient-sidebar-icon">📅</span> My Appointments</a>
+  <div class="patient-sidebar-label">Records</div>
+  <a href="history.html"><span class="patient-sidebar-icon">📋</span> Visit History</a>
+  <a href="doctors.html" class="active"><span class="patient-sidebar-icon">🩺</span> Browse Doctors</a>
+  <div class="patient-sidebar-label">Account</div>
+  <a href="profile.html"><span class="patient-sidebar-icon">👤</span> My Profile</a>
+  <a href="../index.html"><span class="patient-sidebar-icon">🌐</span> View Site</a>
+</aside>
+<main class="patient-main">
+  <div class="patient-page-header">
+    <div class="patient-page-eyebrow">Records</div>
+    <h1 class="patient-page-title">Browse Doctors</h1>
+    <p class="patient-page-sub">Find a doctor by department and book directly.</p>
+  </div>
+
+  <div style="display:flex;gap:12px;margin-bottom:24px;flex-wrap:wrap;">
+    <div class="patient-search" style="width:280px;"><span>🔍</span><input type="text" id="searchInput" placeholder="Search by name..." oninput="render()"></div>
+    <select id="filterDept" onchange="render()" style="padding:8px 14px;border:1.5px solid var(--border);border-radius:8px;font-size:13px;background:var(--bg);outline:none;">
+      <option value="">All Departments</option>
+      <option>General</option><option>Cardiology</option><option>Neurology</option>
+      <option>Orthopaedics</option><option>Gynaecology</option><option>Paediatrics</option>
+      <option>Dermatology</option><option>ENT</option><option>Radiology</option><option>Pathology</option>
+    </select>
+    <span id="docCount" style="font-size:13px;color:var(--muted);align-self:center;"></span>
+  </div>
+
+  <div id="doctorGrid" class="doctor-browse-grid" style="padding:0;"></div>
+</main>
+
+<script src="../js/auth.js"></script>
+<script src="../js/patient.js"></script>
+<script>
+  requirePatient();
+  buildPatientNav();
+
+  function render() {
+    const q    = document.getElementById('searchInput').value.toLowerCase();
+    const dept = document.getElementById('filterDept').value;
+    const docs = DB.get('mf_doctors').filter(d=>{
+      const mq = !q || d.name.toLowerCase().includes(q);
+      const md = !dept || d.dept === dept;
+      return mq && md;
+    });
+    document.getElementById('docCount').textContent = docs.length + ' doctors found';
+    if (!docs.length) {
+      document.getElementById('doctorGrid').innerHTML='<div class="patient-empty" style="grid-column:1/-1;"><div class="patient-empty-icon">🩺</div><div>No doctors found.</div></div>';
+      return;
+    }
+    document.getElementById('doctorGrid').innerHTML = docs.map(d=>`
+      <div class="doctor-browse-card">
+        <div class="doc-avatar">${d.name.charAt(0)}</div>
+        <div class="doc-name">${d.name}</div>
+        <div class="doc-dept">${d.dept}</div>
+        <div class="doc-info">
+          ${d.qual?`🎓 ${d.qual}<br>`:''}
+          ${d.exp?`⏱ ${d.exp} years experience<br>`:''}
+          🕐 ${d.avail||'Mon–Sat, 9AM–5PM'}<br>
+          📞 ${d.phone}
+        </div>
+        <a href="book.html" class="patient-btn patient-btn-primary" style="width:100%;justify-content:center;margin-top:4px;">Book Appointment →</a>
+      </div>`).join('');
+  }
+  render();
+</script>
+</body>
+</html>
