@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Visit History — MediFlow</title>
+  <link rel="stylesheet" href="../css/style.css">
+  <link rel="stylesheet" href="../css/patient.css">
+</head>
+<body>
+<nav class="patient-topnav">
+  <a href="../index.html" class="patient-topnav-logo"><div class="patient-topnav-logo-icon">🏥</div>Medi<span>Flow</span></a>
+  <span class="patient-topnav-badge">🧑‍⚕️ Patient Portal</span>
+  <div class="patient-topnav-spacer"></div>
+  <div class="patient-topnav-user">
+    <div class="patient-topnav-avatar" id="patientInitial">P</div>
+    <span id="patientName">Patient</span>
+    <a href="#" class="patient-topnav-logout" onclick="patientLogout()">Logout</a>
+  </div>
+</nav>
+<aside class="patient-sidebar">
+  <div class="patient-sidebar-label">Overview</div>
+  <a href="dashboard.html"><span class="patient-sidebar-icon">🏠</span> Dashboard</a>
+  <div class="patient-sidebar-label">Appointments</div>
+  <a href="book.html"><span class="patient-sidebar-icon">➕</span> Book Appointment</a>
+  <a href="appointments.html"><span class="patient-sidebar-icon">📅</span> My Appointments</a>
+  <div class="patient-sidebar-label">Records</div>
+  <a href="history.html" class="active"><span class="patient-sidebar-icon">📋</span> Visit History</a>
+  <a href="doctors.html"><span class="patient-sidebar-icon">🩺</span> Browse Doctors</a>
+  <div class="patient-sidebar-label">Account</div>
+  <a href="profile.html"><span class="patient-sidebar-icon">👤</span> My Profile</a>
+  <a href="../index.html"><span class="patient-sidebar-icon">🌐</span> View Site</a>
+</aside>
+<main class="patient-main">
+  <div class="patient-page-header">
+    <div class="patient-page-eyebrow">Records</div>
+    <h1 class="patient-page-title">Visit History</h1>
+    <p class="patient-page-sub">Your complete medical visit history with doctor notes and diagnoses.</p>
+  </div>
+
+  <!-- Timeline of completed visits -->
+  <div class="patient-card">
+    <div class="patient-card-header">
+      <span class="patient-card-title">Completed Visits</span>
+      <span id="visitCount" style="font-size:12px;color:var(--muted);"></span>
+    </div>
+    <div id="historyList"></div>
+  </div>
+
+  <!-- All visits table -->
+  <div class="patient-card" style="margin-top:20px;">
+    <div class="patient-card-header">
+      <span class="patient-card-title">All Appointments (Full Record)</span>
+      <div class="patient-search"><span>🔍</span><input type="text" id="searchInput" placeholder="Search doctor, dept..." oninput="renderTable()"></div>
+    </div>
+    <div id="fullTable"></div>
+  </div>
+</main>
+
+<script src="../js/auth.js"></script>
+<script src="../js/patient.js"></script>
+<script>
+  requirePatient();
+  buildPatientNav();
+
+  function load() {
+    const all      = getMyApts().sort((a,b)=>a.date>b.date?-1:1);
+    const completed = all.filter(a=>a.status==='Completed');
+    document.getElementById('visitCount').textContent = completed.length + ' completed visits';
+
+    if (!completed.length) {
+      document.getElementById('historyList').innerHTML='<div class="patient-empty"><div class="patient-empty-icon">📋</div><div>No completed visits yet.</div></div>';
+    } else {
+      document.getElementById('historyList').innerHTML = `<div style="padding:24px;display:flex;flex-direction:column;gap:0;">` +
+        completed.map((a,i)=>`
+          <div style="display:flex;gap:20px;padding-bottom:24px;${i<completed.length-1?'border-bottom:1px solid var(--border);margin-bottom:24px;':''}">
+            <div style="display:flex;flex-direction:column;align-items:center;flex-shrink:0;">
+              <div style="width:40px;height:40px;border-radius:50%;background:var(--green);color:white;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:700;">✓</div>
+              ${i<completed.length-1?'<div style="width:2px;flex:1;background:var(--border);margin-top:8px;"></div>':''}
+            </div>
+            <div style="flex:1;">
+              <div style="display:flex;align-items:center;gap:12px;margin-bottom:6px;">
+                <span style="font-family:var(--font-head);font-size:15px;font-weight:700;color:var(--navy);">${a.doctorName}</span>
+                <span class="badge badge-teal">${a.dept}</span>
+                <span style="font-size:12px;color:var(--muted);margin-left:auto;">${a.date} · ${a.time}</span>
+              </div>
+              <div style="font-size:13px;color:var(--muted);margin-bottom:8px;">Reason: ${a.reason||'—'}</div>
+              ${a.notes ? `
+                <div style="background:var(--bg2);border-left:3px solid var(--green);border-radius:0 8px 8px 0;padding:12px 16px;">
+                  <div style="font-size:11px;font-weight:700;color:var(--teal);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:4px;">Doctor's Notes</div>
+                  <div style="font-size:13.5px;color:var(--text);line-height:1.6;">${a.notes}</div>
+                </div>` :
+                `<div style="font-size:13px;color:var(--muted);font-style:italic;">No doctor notes recorded for this visit.</div>`}
+            </div>
+          </div>`).join('') + `</div>`;
+    }
+    renderTable();
+  }
+
+  function renderTable() {
+    const q   = document.getElementById('searchInput').value.toLowerCase();
+    const all = getMyApts().filter(a=>!q||(a.doctorName||'').toLowerCase().includes(q)||(a.dept||'').toLowerCase().includes(q)).sort((a,b)=>a.date>b.date?-1:1);
+    if (!all.length) {
+      document.getElementById('fullTable').innerHTML='<div class="patient-empty"><div class="patient-empty-icon">📋</div><div>No records found.</div></div>';
+      return;
+    }
+    document.getElementById('fullTable').innerHTML=`
+      <table class="patient-table">
+        <thead><tr><th>Date</th><th>Doctor</th><th>Dept</th><th>Reason</th><th>Doctor Notes</th><th>Status</th></tr></thead>
+        <tbody>${all.map(a=>`<tr>
+          <td><strong>${a.date}</strong></td>
+          <td>${a.doctorName}</td>
+          <td class="td-muted">${a.dept}</td>
+          <td class="td-muted">${a.reason||'—'}</td>
+          <td style="max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${a.notes||'<span style="color:var(--muted);">—</span>'}</td>
+          <td><span class="badge badge-${a.status.toLowerCase()}">${a.status}</span></td>
+        </tr>`).join('')}</tbody>
+      </table>`;
+  }
+  load();
+</script>
+</body>
+</html>
