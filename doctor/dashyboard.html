@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Doctor Dashboard — MediFlow</title>
+  <link rel="stylesheet" href="../css/style.css">
+  <link rel="stylesheet" href="../css/doctor.css">
+</head>
+<body>
+<nav class="doctor-topnav">
+  <a href="../index.html" class="doctor-topnav-logo"><div class="doctor-topnav-logo-icon">🏥</div>Medi<span>Flow</span></a>
+  <span class="doctor-topnav-badge">🩺 Doctor Portal</span>
+  <div class="doctor-topnav-spacer"></div>
+  <div class="doctor-topnav-user">
+    <div class="doctor-topnav-avatar" id="doctorInitial">D</div>
+    <span id="doctorName">Doctor</span>
+    <a href="#" class="doctor-topnav-logout" onclick="doctorLogout()">Logout</a>
+  </div>
+</nav>
+<aside class="doctor-sidebar">
+  <div class="doctor-sidebar-label">Overview</div>
+  <a href="dashboard.html" class="active"><span class="doctor-sidebar-icon">📊</span> Dashboard</a>
+  <div class="doctor-sidebar-label">My Work</div>
+  <a href="schedule.html"><span class="doctor-sidebar-icon">📅</span> My Schedule</a>
+  <a href="appointments.html"><span class="doctor-sidebar-icon">🗓️</span> Appointments</a>
+  <a href="patients.html"><span class="doctor-sidebar-icon">🧑‍⚕️</span> My Patients</a>
+  <div class="doctor-sidebar-label">Reports</div>
+  <a href="reports.html"><span class="doctor-sidebar-icon">📋</span> My Reports</a>
+  <div class="doctor-sidebar-label">Account</div>
+  <a href="profile.html"><span class="doctor-sidebar-icon">👤</span> My Profile</a>
+  <a href="../index.html"><span class="doctor-sidebar-icon">🌐</span> View Site</a>
+</aside>
+<main class="doctor-main">
+  <div class="doctor-page-header">
+    <div class="doctor-page-eyebrow">Overview</div>
+    <h1 class="doctor-page-title" id="welcomeTitle">Good morning, Doctor</h1>
+    <p class="doctor-page-sub" id="welcomeSub">Here's your hospital summary for today.</p>
+  </div>
+
+  <div class="doctor-stats">
+    <div class="doctor-stat-card teal"><div class="doctor-stat-label">My Patients</div><div class="doctor-stat-value" id="statPatients">0</div><div class="doctor-stat-sub">Assigned to me</div></div>
+    <div class="doctor-stat-card navy"><div class="doctor-stat-label">Total Appointments</div><div class="doctor-stat-value" id="statApts">0</div><div class="doctor-stat-sub">All time</div></div>
+    <div class="doctor-stat-card green"><div class="doctor-stat-label">Today's Appointments</div><div class="doctor-stat-value" id="statToday">0</div><div class="doctor-stat-sub">Scheduled today</div></div>
+    <div class="doctor-stat-card amber"><div class="doctor-stat-label">Completed</div><div class="doctor-stat-value" id="statDone">0</div><div class="doctor-stat-sub">All time</div></div>
+  </div>
+
+  <div class="doctor-grid-2">
+    <div class="doctor-card">
+      <div class="doctor-card-header">
+        <span class="doctor-card-title">📅 Today's Appointments</span>
+        <a href="schedule.html" class="doctor-btn doctor-btn-outline doctor-btn-sm">Full Schedule →</a>
+      </div>
+      <div id="todayApts">
+        <div class="doctor-empty"><div class="doctor-empty-icon">📅</div><div style="font-size:14px;">No appointments today.</div></div>
+      </div>
+    </div>
+    <div class="doctor-card">
+      <div class="doctor-card-header">
+        <span class="doctor-card-title">🧑‍⚕️ My Patients</span>
+        <a href="patients.html" class="doctor-btn doctor-btn-outline doctor-btn-sm">View All →</a>
+      </div>
+      <div id="myPatients">
+        <div class="doctor-empty"><div class="doctor-empty-icon">🧑‍⚕️</div><div style="font-size:14px;">No patients assigned yet.</div></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="doctor-card">
+    <div class="doctor-card-header">
+      <span class="doctor-card-title">🗓️ Upcoming Appointments</span>
+      <a href="appointments.html" class="doctor-btn doctor-btn-outline doctor-btn-sm">View All →</a>
+    </div>
+    <div id="upcomingApts">
+      <div class="doctor-empty"><div class="doctor-empty-icon">🗓️</div><div style="font-size:14px;">No upcoming appointments.</div></div>
+    </div>
+  </div>
+</main>
+
+<script src="../js/auth.js"></script>
+<script src="../js/doctor.js"></script>
+<script>
+  requireDoctor();
+  const s = getSession();
+  buildDocNav();
+
+  const hour = new Date().getHours();
+  const greeting = hour < 12 ? 'Good morning' : hour < 17 ? 'Good afternoon' : 'Good evening';
+  document.getElementById('welcomeTitle').textContent = `${greeting}, ${s.name}`;
+  document.getElementById('welcomeSub').textContent = `${new Date().toDateString()} · ${s.dept} Department`;
+
+  const today = new Date().toISOString().slice(0,10);
+  const myApts = getMyAppointments(s.doctorId);
+  const myPats = getMyPatients(s.doctorId);
+
+  document.getElementById('statPatients').textContent = myPats.length;
+  document.getElementById('statApts').textContent     = myApts.length;
+  document.getElementById('statToday').textContent    = myApts.filter(a=>a.date===today).length;
+  document.getElementById('statDone').textContent     = myApts.filter(a=>a.status==='Completed').length;
+
+  // Today's apts
+  const todayList = myApts.filter(a=>a.date===today).sort((a,b)=>a.time>b.time?1:-1);
+  if (todayList.length) {
+    document.getElementById('todayApts').innerHTML = `
+      <table class="doctor-table">
+        <thead><tr><th>Time</th><th>Patient</th><th>Reason</th><th>Status</th><th>Action</th></tr></thead>
+        <tbody>${todayList.map(a=>`<tr>
+          <td><strong>${a.time}</strong></td>
+          <td>${a.patientName}</td>
+          <td class="td-muted">${a.reason||'—'}</td>
+          <td><span class="badge badge-${a.status.toLowerCase()}">${a.status}</span></td>
+          <td><button class="doctor-btn doctor-btn-outline doctor-btn-sm" onclick="markDone('${a.id}')">✓ Done</button></td>
+        </tr>`).join('')}</tbody>
+      </table>`;
+  }
+
+  // My patients (last 5)
+  if (myPats.length) {
+    document.getElementById('myPatients').innerHTML = `
+      <table class="doctor-table">
+        <thead><tr><th>Name</th><th>Age</th><th>Blood</th><th>Phone</th></tr></thead>
+        <tbody>${myPats.slice(0,5).map(p=>`<tr>
+          <td><strong>${p.name}</strong></td>
+          <td class="td-muted">${p.age||'—'}</td>
+          <td><span class="badge badge-navy">${p.blood||'—'}</span></td>
+          <td class="td-muted">${p.phone}</td>
+        </tr>`).join('')}</tbody>
+      </table>`;
+  }
+
+  // Upcoming (next 7 days, excluding today)
+  const upcoming = myApts.filter(a=>a.date>today&&(a.status==='Confirmed'||a.status==='Pending')).sort((a,b)=>a.date>b.date?1:-1).slice(0,5);
+  if (upcoming.length) {
+    document.getElementById('upcomingApts').innerHTML = `
+      <table class="doctor-table">
+        <thead><tr><th>Date</th><th>Time</th><th>Patient</th><th>Reason</th><th>Status</th></tr></thead>
+        <tbody>${upcoming.map(a=>`<tr>
+          <td><strong>${a.date}</strong></td>
+          <td class="td-muted">${a.time}</td>
+          <td>${a.patientName}</td>
+          <td class="td-muted">${a.reason||'—'}</td>
+          <td><span class="badge badge-${a.status.toLowerCase()}">${a.status}</span></td>
+        </tr>`).join('')}</tbody>
+      </table>`;
+  }
+
+  function markDone(id) {
+    const apts = DB.get('mf_appointments');
+    const a = apts.find(x=>x.id===id);
+    if (a) { a.status='Completed'; DB.set('mf_appointments',apts); location.reload(); }
+  }
+</script>
+</body>
+</html>
