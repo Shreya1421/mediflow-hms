@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Doctor Detail — MediFlow Admin</title>
+  <link rel="stylesheet" href="../css/style.css">
+  <link rel="stylesheet" href="../css/admin.css">
+</head>
+<body>
+<nav class="admin-topnav">
+  <a href="../index.html" class="admin-topnav-logo"><div class="admin-topnav-logo-icon">🏥</div>Medi<span>Flow</span></a>
+  <span class="admin-topnav-badge">🛡️ Admin Portal</span>
+  <div class="admin-topnav-spacer"></div>
+  <div class="admin-topnav-user">
+    <div class="admin-topnav-avatar">A</div>
+    <a href="#" class="admin-topnav-logout" onclick="adminLogout()">Logout</a>
+  </div>
+</nav>
+<aside class="admin-sidebar">
+  <div class="admin-sidebar-label">Overview</div>
+  <a href="dashboard.html"><span class="admin-sidebar-icon">📊</span> Dashboard</a>
+  <div class="admin-sidebar-label">Management</div>
+  <a href="doctors.html" class="active"><span class="admin-sidebar-icon">🩺</span> Doctors</a>
+  <a href="patients.html"><span class="admin-sidebar-icon">🧑‍⚕️</span> Patients</a>
+  <a href="appointments.html"><span class="admin-sidebar-icon">📅</span> Appointments</a>
+  <div class="admin-sidebar-label">Reports</div>
+  <a href="reports.html"><span class="admin-sidebar-icon">📋</span> Weekly Reports</a>
+  <div class="admin-sidebar-label">Settings</div>
+  <a href="settings.html"><span class="admin-sidebar-icon">⚙️</span> Settings</a>
+  <a href="../index.html"><span class="admin-sidebar-icon">🌐</span> View Site</a>
+</aside>
+<main class="admin-main">
+  <a href="doctors.html" style="display:inline-flex;align-items:center;gap:6px;color:var(--muted);text-decoration:none;font-size:13px;margin-bottom:20px;">← Back to Doctors</a>
+  <div id="pageContent"><div class="admin-empty"><div class="admin-empty-icon">🔍</div><div class="admin-empty-text">Loading doctor profile...</div></div></div>
+</main>
+<script src="../js/auth.js"></script>
+<script src="../js/admin.js"></script>
+<script>
+  requireAdmin();
+  const id = new URLSearchParams(location.search).get('id');
+  function load() {
+    const doctors  = getDoctors();
+    const patients = getPatients();
+    const apts     = getAppointments();
+    const doc = doctors.find(d => d.id === id);
+    if (!doc) { document.getElementById('pageContent').innerHTML='<div class="admin-empty"><div class="admin-empty-text">Doctor not found.</div></div>'; return; }
+    const docPatients = patients.filter(p => p.doctor === id);
+    const docApts     = apts.filter(a => a.doctorId === id);
+    document.getElementById('pageContent').innerHTML = `
+      <div style="display:flex;align-items:center;gap:20px;margin-bottom:28px;">
+        <div style="width:64px;height:64px;border-radius:50%;background:var(--navy);display:flex;align-items:center;justify-content:center;font-size:24px;color:white;font-family:var(--font-head);font-weight:700;">${doc.name.charAt(0)}</div>
+        <div>
+          <h1 class="admin-page-title" style="margin-bottom:4px;">${doc.name}</h1>
+          <div style="display:flex;gap:8px;">
+            <span class="badge badge-teal">${doc.dept}</span>
+            <span class="badge badge-navy">${doc.role||'Doctor'}</span>
+          </div>
+        </div>
+        <div style="margin-left:auto;display:flex;gap:8px;">
+          <span style="font-size:13px;color:var(--muted);">Login ID: <strong style="color:var(--navy);">${doc.id}</strong></span>
+        </div>
+      </div>
+
+      <div class="admin-grid-2" style="margin-bottom:20px;">
+        <div class="admin-card">
+          <div class="admin-card-header"><span class="admin-card-title">Profile Information</span></div>
+          <div style="padding:20px 24px;display:flex;flex-direction:column;gap:12px;">
+            ${[['📞 Phone',doc.phone],['📧 Email',doc.email],['🎓 Qualification',doc.qual||'—'],['⏱ Experience',doc.exp?(doc.exp+' years'):'—'],['🕐 Availability',doc.avail||'—'],['🔑 Password',doc.password]].map(([l,v])=>`
+            <div style="display:flex;gap:12px;font-size:13.5px;border-bottom:1px solid var(--border);padding-bottom:10px;">
+              <span style="color:var(--muted);min-width:120px;">${l}</span>
+              <span style="color:var(--text);font-weight:500;">${v}</span>
+            </div>`).join('')}
+          </div>
+        </div>
+        <div class="admin-stats" style="grid-template-columns:1fr 1fr;grid-column:auto;align-content:start;">
+          <div class="admin-stat-card navy"><div class="admin-stat-label">Patients</div><div class="admin-stat-value">${docPatients.length}</div></div>
+          <div class="admin-stat-card teal"><div class="admin-stat-label">Appointments</div><div class="admin-stat-value">${docApts.length}</div></div>
+          <div class="admin-stat-card green"><div class="admin-stat-label">Completed</div><div class="admin-stat-value">${docApts.filter(a=>a.status==='Completed').length}</div></div>
+          <div class="admin-stat-card amber"><div class="admin-stat-label">Pending</div><div class="admin-stat-value">${docApts.filter(a=>a.status==='Pending'||a.status==='Confirmed').length}</div></div>
+        </div>
+      </div>
+
+      <div class="admin-card" style="margin-bottom:20px;">
+        <div class="admin-card-header"><span class="admin-card-title">Assigned Patients (${docPatients.length})</span></div>
+        ${docPatients.length ? `<table class="admin-table"><thead><tr><th>ID</th><th>Name</th><th>Age</th><th>Blood</th><th>Phone</th><th>Notes</th></tr></thead>
+        <tbody>${docPatients.map(p=>`<tr>
+          <td class="td-muted">${p.id}</td><td><strong>${p.name}</strong></td>
+          <td class="td-muted">${p.age||'—'}</td>
+          <td><span class="badge badge-navy">${p.blood||'—'}</span></td>
+          <td class="td-muted">${p.phone}</td>
+          <td class="td-muted">${p.notes||'—'}</td>
+        </tr>`).join('')}</tbody></table>` : '<div class="admin-empty"><div class="admin-empty-text">No patients assigned yet.</div></div>'}
+      </div>
+
+      <div class="admin-card">
+        <div class="admin-card-header"><span class="admin-card-title">Appointment Schedule (${docApts.length})</span></div>
+        ${docApts.length ? `<table class="admin-table"><thead><tr><th>ID</th><th>Patient</th><th>Date</th><th>Time</th><th>Reason</th><th>Status</th></tr></thead>
+        <tbody>${[...docApts].sort((a,b)=>a.date>b.date?-1:1).map(a=>`<tr>
+          <td class="td-muted">${a.id}</td><td><strong>${a.patientName}</strong></td>
+          <td class="td-muted">${a.date}</td><td class="td-muted">${a.time}</td>
+          <td class="td-muted">${a.reason||'—'}</td>
+          <td>${statusBadge(a.status)}</td>
+        </tr>`).join('')}</tbody></table>` : '<div class="admin-empty"><div class="admin-empty-text">No appointments yet.</div></div>'}
+      </div>`;
+  }
+  load();
+</script>
+</body>
+</html>
