@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin Login — MediFlow</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<div class="login-page">
+  <div class="login-left">
+    <div class="login-form-wrap">
+      <a href="index.html" class="login-logo">
+        <div class="login-logo-icon" style="background:var(--navy);">🏥</div>
+        <span class="login-logo-text" style="font-family:var(--font-head);color:var(--navy);">MediFlow <span style="color:var(--accent);">HMS</span></span>
+      </a>
+      <h1 class="login-title" style="color:var(--navy);">Admin Login</h1>
+      <p class="login-sub">Access the full hospital management system.</p>
+      <div class="demo-creds">
+        <strong>Demo Credentials</strong><br>
+        Email: admin@mediflow.com<br>
+        Password: Admin@123
+      </div>
+      <div class="error-msg" id="errMsg">Invalid email or password. Please try again.</div>
+      <div class="form-group">
+        <label>Email Address</label>
+        <input type="email" id="email" placeholder="admin@mediflow.com">
+      </div>
+      <div class="form-group">
+        <label>Password</label>
+        <input type="password" id="password" placeholder="••••••••">
+      </div>
+      <button class="btn-submit" onclick="doLogin()">Login to Admin Portal</button>
+      <div class="login-footer-link" style="margin-top:16px;">
+        <a href="index.html">← Back to Home</a> &nbsp;|&nbsp;
+        Not an admin? <a href="login-doctor.html">Doctor Login</a>
+      </div>
+    </div>
+  </div>
+  <div class="login-right" style="background:linear-gradient(135deg,var(--navy-dark),var(--navy-light));">
+    <div style="text-align:center;color:white;max-width:360px;position:relative;z-index:1;">
+      <div style="font-size:56px;margin-bottom:24px;">🛡️</div>
+      <h2 style="font-family:var(--font-head);font-size:30px;margin-bottom:14px;">Full System Control</h2>
+      <p style="font-size:15px;color:rgba(255,255,255,0.7);line-height:1.7;">Manage doctors, patients, appointments, and generate weekly performance reports — all from one powerful dashboard.</p>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:32px;">
+        <div style="background:rgba(255,255,255,0.1);border-radius:10px;padding:16px;"><div style="font-size:22px;font-weight:700;font-family:var(--font-head);">8</div><div style="font-size:12px;color:rgba(255,255,255,0.6);">Admin pages</div></div>
+        <div style="background:rgba(255,255,255,0.1);border-radius:10px;padding:16px;"><div style="font-size:22px;font-weight:700;font-family:var(--font-head);">PDF</div><div style="font-size:12px;color:rgba(255,255,255,0.6);">Report export</div></div>
+      </div>
+    </div>
+  </div>
+</div>
+<script src="js/auth.js"></script>
+<script>
+  function doLogin() {
+    const email = document.getElementById('email').value.trim();
+    const pass  = document.getElementById('password').value;
+    if (email === DEMO.admin.email && pass === DEMO.admin.password) {
+      setSession('admin', { name: 'Admin', email });
+      window.location.href = 'admin/dashboard.html';
+    } else {
+      document.getElementById('errMsg').classList.add('show');
+    }
+  }
+  document.addEventListener('keydown', e => { if (e.key === 'Enter') doLogin(); });
+</script>
+</body>
+</html>

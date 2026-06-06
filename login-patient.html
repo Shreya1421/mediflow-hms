@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Patient Login — MediFlow</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<div class="login-page">
+  <div class="login-left">
+    <div class="login-form-wrap">
+      <a href="index.html" class="login-logo">
+        <div class="login-logo-icon" style="background:var(--green);">🏥</div>
+        <span class="login-logo-text" style="font-family:var(--font-head);color:var(--navy);">MediFlow <span style="color:var(--accent);">HMS</span></span>
+      </a>
+      <h1 class="login-title" id="formTitle" style="color:var(--navy);">Patient Login</h1>
+      <p class="login-sub" id="formSub">Access your appointments and health records.</p>
+      <div class="demo-creds" id="demoCreds">
+        <strong>Demo Credentials</strong><br>
+        Email: priya@mail.com / Pat@123<br>
+        or Register below as a new patient
+      </div>
+      <div class="error-msg" id="errMsg">Invalid email or password.</div>
+
+      <!-- Login Form -->
+      <div id="loginForm">
+        <div class="form-group"><label>Email Address</label><input type="email" id="lEmail" placeholder="you@email.com"></div>
+        <div class="form-group"><label>Password</label><input type="password" id="lPass" placeholder="••••••••"></div>
+        <button class="btn-submit" style="background:var(--green);" onclick="doLogin()">Login to Patient Portal</button>
+        <div class="divider-or"><span>or</span></div>
+        <button class="btn-submit" style="background:transparent;border:1.5px solid var(--border);color:var(--navy);" onclick="showRegister()">Register as New Patient</button>
+      </div>
+
+      <!-- Register Form -->
+      <div id="registerForm" style="display:none;">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+          <div class="form-group"><label>Full Name *</label><input type="text" id="rName" placeholder="Priya Sharma"></div>
+          <div class="form-group"><label>Age *</label><input type="number" id="rAge" placeholder="28"></div>
+          <div class="form-group"><label>Gender *</label><select id="rGender"><option value="">Select</option><option>Male</option><option>Female</option><option>Other</option></select></div>
+          <div class="form-group"><label>Blood Group *</label><select id="rBlood"><option value="">Select</option><option>A+</option><option>A-</option><option>B+</option><option>B-</option><option>AB+</option><option>AB-</option><option>O+</option><option>O-</option></select></div>
+        </div>
+        <div class="form-group"><label>Phone *</label><input type="tel" id="rPhone" placeholder="9876543210"></div>
+        <div class="form-group"><label>Email *</label><input type="email" id="rEmail" placeholder="you@email.com"></div>
+        <div class="form-group"><label>Password *</label><input type="password" id="rPass" placeholder="Min 6 characters"></div>
+        <button class="btn-submit" style="background:var(--green);" onclick="doRegister()">Create Account</button>
+        <div class="divider-or"><span>or</span></div>
+        <button class="btn-submit" style="background:transparent;border:1.5px solid var(--border);color:var(--navy);" onclick="showLogin()">Already registered? Login</button>
+      </div>
+
+      <div class="login-footer-link" style="margin-top:16px;"><a href="index.html">← Back to Home</a></div>
+    </div>
+  </div>
+  <div class="login-right" style="background:linear-gradient(135deg,#065F46,var(--green));">
+    <div style="text-align:center;color:white;max-width:360px;">
+      <div style="font-size:56px;margin-bottom:24px;">🧑‍⚕️</div>
+      <h2 style="font-family:var(--font-head);font-size:30px;margin-bottom:14px;">Your Health, Your Control.</h2>
+      <p style="font-size:15px;color:rgba(255,255,255,0.7);line-height:1.7;">Book appointments with top doctors, track your visit history, and manage your health profile — all from one place.</p>
+    </div>
+  </div>
+</div>
+<script src="js/auth.js"></script>
+<script>
+  function showRegister() {
+    document.getElementById('loginForm').style.display = 'none';
+    document.getElementById('registerForm').style.display = 'block';
+    document.getElementById('formTitle').textContent = 'Create Account';
+    document.getElementById('formSub').textContent = 'Register as a new patient to get started.';
+    document.getElementById('demoCreds').style.display = 'none';
+  }
+  function showLogin() {
+    document.getElementById('loginForm').style.display = 'block';
+    document.getElementById('registerForm').style.display = 'none';
+    document.getElementById('formTitle').textContent = 'Patient Login';
+    document.getElementById('formSub').textContent = 'Access your appointments and health records.';
+    document.getElementById('demoCreds').style.display = 'block';
+  }
+  function doLogin() {
+    const email = document.getElementById('lEmail').value.trim();
+    const pass  = document.getElementById('lPass').value;
+    const patients = JSON.parse(localStorage.getItem('mf_patients') || '[]');
+    const pat = patients.find(p => p.email === email && p.password === pass);
+    if (pat) {
+      setSession('patient', { patientId: pat.id, name: pat.name });
+      window.location.href = 'patient/dashboard.html';
+    } else {
+      document.getElementById('errMsg').classList.add('show');
+    }
+  }
+  function doRegister() {
+    const name = document.getElementById('rName').value.trim();
+    const age  = document.getElementById('rAge').value;
+    const gender = document.getElementById('rGender').value;
+    const blood  = document.getElementById('rBlood').value;
+    const phone  = document.getElementById('rPhone').value.trim();
+    const email  = document.getElementById('rEmail').value.trim();
+    const pass   = document.getElementById('rPass').value;
+    if (!name||!age||!gender||!blood||!phone||!email||!pass) { alert('Please fill all required fields.'); return; }
+    if (pass.length < 6) { alert('Password must be at least 6 characters.'); return; }
+    const patients = JSON.parse(localStorage.getItem('mf_patients') || '[]');
+    if (patients.find(p => p.email === email)) { alert('Email already registered. Please login.'); return; }
+    const id = 'PAT' + String(patients.length + 1).padStart(3, '0');
+    patients.push({ id, name, age, gender, blood, phone, email, password: pass, dept:'', doctor:'', address:'', notes:'', visits:[] });
+    localStorage.setItem('mf_patients', JSON.stringify(patients));
+    setSession('patient', { patientId: id, name });
+    window.location.href = 'patient/dashboard.html';
+  }
+</script>
+</body>
+</html>

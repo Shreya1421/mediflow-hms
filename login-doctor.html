@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Doctor Login — MediFlow</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<div class="login-page">
+  <div class="login-left">
+    <div class="login-form-wrap">
+      <a href="index.html" class="login-logo">
+        <div class="login-logo-icon" style="background:var(--teal);">🏥</div>
+        <span class="login-logo-text" style="font-family:var(--font-head);color:var(--navy);">MediFlow <span style="color:var(--accent);">HMS</span></span>
+      </a>
+      <h1 class="login-title" style="color:var(--navy);">Doctor Login</h1>
+      <p class="login-sub">Access your schedule, patients, and reports.</p>
+      <div class="demo-creds">
+        <strong>Demo Credentials</strong><br>
+        Doctor ID: DOC001<br>
+        Password: Doctor@123
+      </div>
+      <div class="error-msg" id="errMsg">Invalid Doctor ID or password.</div>
+      <div class="form-group">
+        <label>Doctor ID</label>
+        <input type="text" id="docId" placeholder="e.g. DOC001">
+      </div>
+      <div class="form-group">
+        <label>Password</label>
+        <input type="password" id="password" placeholder="••••••••">
+      </div>
+      <button class="btn-submit" style="background:var(--teal);" onclick="doLogin()">Login to Doctor Portal</button>
+      <div class="login-footer-link" style="margin-top:16px;">
+        <a href="index.html">← Back to Home</a> &nbsp;|&nbsp;
+        <a href="login-admin.html">Admin Login</a>
+      </div>
+    </div>
+  </div>
+  <div class="login-right" style="background:linear-gradient(135deg,#064E3B,var(--teal));">
+    <div style="text-align:center;color:white;max-width:360px;position:relative;z-index:1;">
+      <div style="font-size:56px;margin-bottom:24px;">🩺</div>
+      <h2 style="font-family:var(--font-head);font-size:30px;margin-bottom:14px;">Your Patients. Your Schedule.</h2>
+      <p style="font-size:15px;color:rgba(255,255,255,0.7);line-height:1.7;">See today's appointments, manage assigned patients, write diagnosis notes, and view your weekly performance report.</p>
+    </div>
+  </div>
+</div>
+<script src="js/auth.js"></script>
+<script>
+  function doLogin() {
+    const id   = document.getElementById('docId').value.trim().toUpperCase();
+    const pass = document.getElementById('password').value;
+    const doctors = JSON.parse(localStorage.getItem('mf_doctors') || '[]');
+    const doc = doctors.find(d => d.id === id && d.password === pass);
+    if (doc) {
+      setSession('doctor', { doctorId: doc.id, name: doc.name, dept: doc.dept });
+      window.location.href = 'doctor/dashboard.html';
+    } else {
+      document.getElementById('errMsg').classList.add('show');
+    }
+  }
+  document.addEventListener('keydown', e => { if (e.key === 'Enter') doLogin(); });
+</script>
+</body>
+</html>
