@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Patient Detail — MediFlow Doctor</title>
+  <link rel="stylesheet" href="../css/style.css">
+  <link rel="stylesheet" href="../css/doctor.css">
+</head>
+<body>
+<nav class="doctor-topnav">
+  <a href="../index.html" class="doctor-topnav-logo"><div class="doctor-topnav-logo-icon">🏥</div>Medi<span>Flow</span></a>
+  <span class="doctor-topnav-badge">🩺 Doctor Portal</span>
+  <div class="doctor-topnav-spacer"></div>
+  <div class="doctor-topnav-user">
+    <div class="doctor-topnav-avatar" id="doctorInitial">D</div>
+    <span id="doctorName">Doctor</span>
+    <a href="#" class="doctor-topnav-logout" onclick="doctorLogout()">Logout</a>
+  </div>
+</nav>
+<aside class="doctor-sidebar">
+  <div class="doctor-sidebar-label">Overview</div>
+  <a href="dashboard.html"><span class="doctor-sidebar-icon">📊</span> Dashboard</a>
+  <div class="doctor-sidebar-label">My Work</div>
+  <a href="schedule.html"><span class="doctor-sidebar-icon">📅</span> My Schedule</a>
+  <a href="appointments.html"><span class="doctor-sidebar-icon">🗓️</span> Appointments</a>
+  <a href="patients.html" class="active"><span class="doctor-sidebar-icon">🧑‍⚕️</span> My Patients</a>
+  <div class="doctor-sidebar-label">Reports</div>
+  <a href="reports.html"><span class="doctor-sidebar-icon">📋</span> My Reports</a>
+  <div class="doctor-sidebar-label">Account</div>
+  <a href="profile.html"><span class="doctor-sidebar-icon">👤</span> My Profile</a>
+  <a href="../index.html"><span class="doctor-sidebar-icon">🌐</span> View Site</a>
+</aside>
+<main class="doctor-main">
+  <a href="patients.html" style="display:inline-flex;align-items:center;gap:6px;color:var(--muted);text-decoration:none;font-size:13px;margin-bottom:20px;">← Back to Patients</a>
+  <div class="doctor-alert" id="alertBox"></div>
+  <div id="pageContent"></div>
+</main>
+<script src="../js/auth.js"></script>
+<script src="../js/doctor.js"></script>
+<script>
+  requireDoctor();
+  buildDocNav();
+  const s   = getSession();
+  const pid = new URLSearchParams(location.search).get('id');
+
+  function load() {
+    const pat  = DB.get('mf_patients').find(p=>p.id===pid);
+    const apts = getMyAppointments(s.doctorId).filter(a=>a.patientName===pat?.name||a.patientId===pid);
+    if (!pat) { document.getElementById('pageContent').innerHTML='<div class="doctor-empty"><div>Patient not found.</div></div>'; return; }
+
+    document.getElementById('pageContent').innerHTML = `
+      <div style="display:flex;align-items:center;gap:20px;margin-bottom:28px;">
+        <div style="width:64px;height:64px;border-radius:50%;background:var(--teal);color:white;display:flex;align-items:center;justify-content:center;font-size:24px;font-family:var(--font-head);font-weight:700;">${pat.name.charAt(0)}</div>
+        <div>
+          <h1 class="doctor-page-title" style="margin-bottom:4px;">${pat.name}</h1>
+          <div style="display:flex;gap:8px;">
+            <span class="badge badge-navy">${pat.blood||'—'}</span>
+            <span class="badge badge-teal">${pat.gender||'—'}</span>
+            <span class="badge" style="background:#EEF2FB;color:var(--navy);">Age: ${pat.age||'—'}</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="doctor-grid-2" style="margin-bottom:20px;">
+        <div class="doctor-card">
+          <div class="doctor-card-header"><span class="doctor-card-title">Contact & Medical Info</span></div>
+          <div style="padding:20px 24px;display:flex;flex-direction:column;gap:12px;">
+            ${[['📞 Phone',pat.phone],['📧 Email',pat.email||'—'],['🏠 Address',pat.address||'—'],['🏥 Department',pat.dept||'—'],['🩸 Blood Group',pat.blood||'—'],['📝 Medical Notes',pat.notes||'—']].map(([l,v])=>`
+            <div style="display:flex;gap:12px;font-size:13.5px;border-bottom:1px solid var(--border);padding-bottom:10px;">
+              <span style="color:var(--muted);min-width:130px;">${l}</span>
+              <span style="color:var(--text);font-weight:500;">${v}</span>
+            </div>`).join('')}
+          </div>
+        </div>
+
+        <!-- Add notes form -->
+        <div class="doctor-card">
+          <div class="doctor-card-header"><span class="doctor-card-title">📝 Add Visit Note</span></div>
+          <div class="doctor-form-grid">
+            <div class="doctor-form-group doctor-form-full">
+              <label>Select Appointment</label>
+              <select id="noteApt">
+                <option value="">Select appointment</option>
+                ${apts.map(a=>`<option value="${a.id}">${a.date} ${a.time} — ${a.status}</option>`).join('')}
+              </select>
+            </div>
+            <div class="doctor-form-group doctor-form-full">
+              <label>Diagnosis & Notes</label>
+              <textarea id="noteText" rows="4" placeholder="Diagnosis, prescription, follow-up..."></textarea>
+            </div>
+          </div>
+          <div class="doctor-form-actions">
+            <button class="doctor-btn doctor-btn-primary" onclick="saveNote()">Save Note</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="doctor-card">
+        <div class="doctor-card-header"><span class="doctor-card-title">Visit History (${apts.length} visits)</span></div>
+        ${apts.length ? `<table class="doctor-table">
+          <thead><tr><th>Date</th><th>Time</th><th>Reason</th><th>Notes / Diagnosis</th><th>Status</th></tr></thead>
+          <tbody>${[...apts].sort((a,b)=>a.date>b.date?-1:1).map(a=>`<tr>
+            <td><strong>${a.date}</strong></td>
+            <td class="td-muted">${a.time}</td>
+            <td class="td-muted">${a.reason||'—'}</td>
+            <td style="max-width:200px;">${a.notes||'<span style="color:var(--muted);">No notes yet</span>'}</td>
+            <td><span class="badge badge-${a.status.toLowerCase()}">${a.status}</span></td>
+          </tr>`).join('')}</tbody>
+        </table>` : '<div class="doctor-empty"><div>No visit history yet.</div></div>'}
+      </div>`;
+  }
+
+  function saveNote() {
+    const aptId=document.getElementById('noteApt').value;
+    const notes=document.getElementById('noteText').value.trim();
+    if(!aptId){showDoctorAlert('alertBox','Please select an appointment.','error');return;}
+    if(!notes){showDoctorAlert('alertBox','Please enter notes.','error');return;}
+    const apts=DB.get('mf_appointments');
+    const a=apts.find(x=>x.id===aptId);
+    if(a){a.notes=notes;a.status='Completed';DB.set('mf_appointments',apts);}
+    showDoctorAlert('alertBox','Notes saved successfully.');
+    load();
+  }
+  load();
+</script>
+</body>
+</html>
